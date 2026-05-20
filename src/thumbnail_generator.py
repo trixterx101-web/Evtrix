@@ -299,6 +299,43 @@ PREMIUM_PALETTES = [
 LAYOUTS = ["split", "versus", "shock", "data",
            "neon", "minimal", "alert", "cinematic", "grid", "bold"]
 
+# ── Global stats pool ─────────────────────────────────────────────────────────
+# Each entry: (display_value, short_label, RGB_color)
+# Layouts that render stat cards pick 1-3 entries via random.sample().
+GLOBAL_STATS_POOL = [
+    # Range / mileage stats
+    ("289 mi",  "MAX RANGE",        (0,   200, 140)),
+    ("400 mi",  "REAL RANGE",       (0,   220, 180)),
+    ("500 mi",  "CLAIMED RANGE",    (50,  230, 200)),
+    ("127 mi",  "WINTER RANGE",     (255, 160,  0 )),
+    ("342 mi",  "EPA RANGE",        (0,   200, 255)),
+    # Charging stats
+    ("18 min",  "0→80% CHARGE",     (180,   0, 255)),
+    ("22 min",  "FAST CHARGE",      (210,   0, 255)),
+    ("45 min",  "DC FAST",          (130,  50, 255)),
+    ("8 h",     "HOME CHARGE",      (0,   180, 130)),
+    # Cost / savings stats
+    ("$45K",    "AVG EV PRICE",     (255, 215,   0)),
+    ("$120",    "MONTHLY FUEL SAVE",(0,   255, 150)),
+    ("$2.8¢",   "PER MILE COST",    (255, 200,   0)),
+    ("$9K",     "5-YR SAVINGS",     (0,   220, 180)),
+    # Battery / tech stats
+    ("82%",     "AFTER 5 YRS",      (220,  40,  40)),
+    ("90%",     "CAPACITY 8 YR",    (0,   200, 140)),
+    ("100 kWh", "BATTERY SIZE",     (0,   200, 255)),
+    ("150 kWh", "MEGA PACK",        (50,  180, 255)),
+    # Market stats
+    ("14M",     "EVs ON ROAD",      (255, 180,   0)),
+    ("38%",     "MARKET SHARE",     (0,   200, 140)),
+    ("2.5×",    "GROWTH RATE",      (180,   0, 255)),
+    ("60%",     "COST DROP 10 YR",  (255, 215,   0)),
+    # Performance stats
+    ("1.9 s",   "0-60 MPH",         (255,  90,   0)),
+    ("2.3 s",   "0-100 KPH",        (255, 120,   0)),
+    ("670 hp",  "PEAK POWER",       (220,  40,  40)),
+    ("1,020 hp","LUDICROUS MODE",   (180,   0, 255)),
+]
+
 
 def _extract_video_frame(video_path: str, output_image_path: str) -> bool:
     """FFmpeg kullanarak videonun 2. saniyesinden 1 adet kare cikarir."""
