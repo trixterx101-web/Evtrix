@@ -95,57 +95,205 @@ def _mix(c1, c2, t):
     return tuple(int(c1[i] * (1 - t) + c2[i] * t) for i in range(3))
 
 
-# ── Premium 20 Thumbnail Styles ────────────────────────────────────────────────
-GLOBAL_STATS_POOL = [
-    ("+300%", "EV SALES GROWTH", (0, 212, 255)),
-    ("$0", "GAS CAR FUTURE VALUE", (255, 34, 0)),
-    ("500MI", "NEW EV RANGE RECORD", (255, 204, 0)),
-    ("800V", "ULTRA FAST CHARGING", (0, 255, 136)),
-    ("2.1s", "0-60 MPH TIME RECORD", (255, 0, 128)),
-    ("150K+", "EV CHARGERS PLANNED", (0, 212, 255)),
-    ("-45%", "BATTERY COST REDUCTION", (0, 255, 136)),
-    ("350KW", "MAX CHARGING SPEED", (255, 107, 0)),
-    ("10 MIN", "CHARGE TIME TARGET", (0, 212, 255)),
-    ("99%", "MOTOR EFFICIENCY", (255, 204, 0)),
-    ("1M KM", "LFP LIFESPAN", (255, 107, 0)),
-    ("500 WH", "SOLID STATE DENSITY", (255, 204, 0)),
-    ("15 YRS", "BATTERY DEGRADATION", (255, 107, 0)),
-    ("SODIUM", "NEXT-GEN CELL TECH", (0, 255, 136)),
-    ("10x", "SPEED VS HUMAN", (139, 0, 255)),
-    ("2030", "AGI PREDICTION", (0, 212, 255)),
-    ("40%", "JOBS AUTOMATED", (0, 255, 136)),
-    ("FUSION", "NET ENERGY GAIN", (255, 0, 255)),
-    ("QUANTUM", "COMPUTING ADVANCE", (0, 212, 255))
-]
+# ── 20 Premium YouTube-Style Thumbnail Palettes (4 Themes × 5 Variations) ──────
+# theme key maps directly to one of the 4 YouTube-style layout functions.
 
 PREMIUM_PALETTES = [
-    # --- Theme 1: Purple / AI / Shocking (Inspired by Image 1) ---
-    {"bg": (15,0,30), "left_bg": (25,0,45), "right_bg": (10,0,20), "accent1": (180,0,255), "accent2": (255,255,0), "label": "AI ANALYSIS", "icon": "AI"},
-    {"bg": (10,0,25), "left_bg": (20,0,40), "right_bg": (5,0,15), "accent1": (255,0,255), "accent2": (0,255,200), "label": "SHOCKING", "icon": "!!"},
-    {"bg": (20,0,20), "left_bg": (35,0,35), "right_bg": (10,0,10), "accent1": (255,100,200), "accent2": (255,255,255), "label": "PREDICTION", "icon": "PREDICT"},
-    {"bg": (15,0,40), "left_bg": (30,0,60), "right_bg": (10,0,20), "accent1": (130,50,255), "accent2": (0,255,100), "label": "DEEP DIVE", "icon": "DATA"},
-    {"bg": (25,0,15), "left_bg": (40,0,25), "right_bg": (15,0,5), "accent1": (255,0,128), "accent2": (255,200,0), "label": "WARNING", "icon": "ALERT"},
+    # ══════════════════════════════════════════════════════════════════════
+    # THEME 1: "shocking" — Purple/AI/Prediction (bkz. Image 1)
+    # ══════════════════════════════════════════════════════════════════════
+    {
+        "theme": "shocking",
+        "bg": (15, 0, 30), "bg_top": (22, 0, 42), "bg_bot": (8, 0, 14),
+        "left_bg": (25, 0, 45), "right_bg": (10, 0, 20),
+        "accent1": (180, 0, 255), "accent2": (255, 215, 0),
+        "label": "AI ANALYSIS", "badge_icon": "* ", "icon": "AI",
+        "badge_color": (75, 0, 155),
+        "stat1": "289mi", "stat2": "53mi",
+    },
+    {
+        "theme": "shocking",
+        "bg": (10, 0, 25), "bg_top": (16, 0, 36), "bg_bot": (5, 0, 12),
+        "left_bg": (20, 0, 40), "right_bg": (5, 0, 15),
+        "accent1": (210, 0, 255), "accent2": (255, 200, 0),
+        "label": "SHOCKING", "badge_icon": "!! ", "icon": "!!",
+        "badge_color": (100, 0, 175),
+        "stat1": "342mi", "stat2": "78mi",
+    },
+    {
+        "theme": "shocking",
+        "bg": (20, 0, 20), "bg_top": (28, 0, 28), "bg_bot": (8, 0, 8),
+        "left_bg": (35, 0, 35), "right_bg": (10, 0, 10),
+        "accent1": (220, 50, 255), "accent2": (0, 255, 200),
+        "label": "PREDICTION", "badge_icon": "~ ", "icon": "PREDICT",
+        "badge_color": (90, 20, 140),
+        "stat1": "415mi", "stat2": "62mi",
+    },
+    {
+        "theme": "shocking",
+        "bg": (15, 0, 40), "bg_top": (22, 0, 55), "bg_bot": (6, 0, 18),
+        "left_bg": (30, 0, 60), "right_bg": (10, 0, 20),
+        "accent1": (130, 50, 255), "accent2": (0, 255, 100),
+        "label": "DEEP DIVE", "badge_icon": "# ", "icon": "DATA",
+        "badge_color": (50, 20, 120),
+        "stat1": "198mi", "stat2": "44mi",
+    },
+    {
+        "theme": "shocking",
+        "bg": (25, 0, 15), "bg_top": (36, 0, 22), "bg_bot": (10, 0, 6),
+        "left_bg": (40, 0, 25), "right_bg": (15, 0, 5),
+        "accent1": (255, 0, 200), "accent2": (255, 200, 0),
+        "label": "WARNING", "badge_icon": "! ", "icon": "ALERT",
+        "badge_color": (120, 0, 80),
+        "stat1": "521mi", "stat2": "95mi",
+    },
 
-    # --- Theme 2: Dark Blue / Tech / Data Breakdown (Inspired by Image 2) ---
-    {"bg": (0,5,25), "left_bg": (0,15,45), "right_bg": (0,5,15), "accent1": (0,212,255), "accent2": (255,204,0), "label": "REALITY?", "icon": "SCAM?"},
-    {"bg": (0,10,30), "left_bg": (0,20,50), "right_bg": (0,5,20), "accent1": (0,255,255), "accent2": (255,0,0), "label": "BREAKDOWN", "icon": "TECH"},
-    {"bg": (0,5,20), "left_bg": (0,15,35), "right_bg": (0,2,10), "accent1": (50,150,255), "accent2": (255,255,255), "label": "REAL DATA", "icon": "TEST"},
-    {"bg": (0,15,35), "left_bg": (0,30,60), "right_bg": (0,10,25), "accent1": (0,255,136), "accent2": (255,255,0), "label": "REVIEW", "icon": "EV"},
-    {"bg": (5,5,30), "left_bg": (10,10,50), "right_bg": (0,0,15), "accent1": (0,180,255), "accent2": (255,100,0), "label": "EXPOSED", "icon": "DOC"},
+    # ══════════════════════════════════════════════════════════════════════
+    # THEME 2: "crash" — Dark Teal/Navy, Prices Crashed (bkz. Image 2)
+    # ══════════════════════════════════════════════════════════════════════
+    {
+        "theme": "crash",
+        "bg": (0, 5, 25), "bg_top": (0, 10, 35), "bg_bot": (0, 3, 12),
+        "left_bg": (0, 15, 45), "right_bg": (0, 5, 15),
+        "accent1": (0, 200, 140), "accent2": (220, 40, 40),
+        "label": "REALITY?", "icon": "SCAM?",
+        "price_high": "$1,100/kWh", "price_low": "$200/kWh",
+        "big_stat": "82%", "subtitle": "WHAT HAPPENS NEXT?",
+    },
+    {
+        "theme": "crash",
+        "bg": (0, 10, 30), "bg_top": (0, 15, 42), "bg_bot": (0, 5, 15),
+        "left_bg": (0, 20, 50), "right_bg": (0, 5, 20),
+        "accent1": (0, 220, 180), "accent2": (240, 60, 60),
+        "label": "BREAKDOWN", "icon": "TECH",
+        "price_high": "$800/kWh", "price_low": "$150/kWh",
+        "big_stat": "75%", "subtitle": "WHO PROFITS?",
+    },
+    {
+        "theme": "crash",
+        "bg": (0, 5, 20), "bg_top": (0, 8, 28), "bg_bot": (0, 2, 10),
+        "left_bg": (0, 15, 35), "right_bg": (0, 2, 10),
+        "accent1": (50, 230, 200), "accent2": (255, 100, 0),
+        "label": "REAL DATA", "icon": "TEST",
+        "price_high": "$600/kWh", "price_low": "$130/kWh",
+        "big_stat": "65%", "subtitle": "THE REAL NUMBERS",
+    },
+    {
+        "theme": "crash",
+        "bg": (0, 15, 35), "bg_top": (0, 22, 48), "bg_bot": (0, 8, 18),
+        "left_bg": (0, 30, 60), "right_bg": (0, 10, 25),
+        "accent1": (0, 255, 150), "accent2": (255, 50, 50),
+        "label": "REVIEW", "icon": "EV",
+        "price_high": "$950/kWh", "price_low": "$180/kWh",
+        "big_stat": "90%", "subtitle": "WHO GETS LEFT BEHIND?",
+    },
+    {
+        "theme": "crash",
+        "bg": (5, 5, 30), "bg_top": (8, 8, 42), "bg_bot": (2, 2, 15),
+        "left_bg": (10, 10, 50), "right_bg": (0, 0, 15),
+        "accent1": (0, 180, 130), "accent2": (200, 50, 50),
+        "label": "EXPOSED", "icon": "DOC",
+        "price_high": "$1,200/kWh", "price_low": "$120/kWh",
+        "big_stat": "88%", "subtitle": "EXPERTS WARNED US",
+    },
 
-    # --- Theme 3: Dark Teal / Finance / Battery Crash (Inspired by Image 3) ---
-    {"bg": (0,15,20), "left_bg": (0,30,40), "right_bg": (0,10,15), "accent1": (0,255,150), "accent2": (255,255,255), "label": "FINANCE", "icon": "$$"},
-    {"bg": (0,20,15), "left_bg": (0,40,30), "right_bg": (0,10,5), "accent1": (0,200,100), "accent2": (255,100,100), "label": "CRASH", "icon": "DOWN"},
-    {"bg": (0,25,25), "left_bg": (0,50,50), "right_bg": (0,15,15), "accent1": (50,255,200), "accent2": (200,200,200), "label": "COST", "icon": "PRICE"},
-    {"bg": (5,20,25), "left_bg": (10,40,50), "right_bg": (0,10,15), "accent1": (0,150,100), "accent2": (255,215,0), "label": "BATTERY", "icon": "10 YRS"},
-    {"bg": (0,10,10), "left_bg": (0,25,25), "right_bg": (0,5,5), "accent1": (0,255,100), "accent2": (255,50,50), "label": "MARKET", "icon": "TREND"},
+    # ══════════════════════════════════════════════════════════════════════
+    # THEME 3: "nextgen" — Dark Amber/Gold, Next-Gen EVs (bkz. Image 3)
+    # ══════════════════════════════════════════════════════════════════════
+    {
+        "theme": "nextgen",
+        "bg": (15, 10, 0), "bg_top": (22, 15, 0), "bg_bot": (6, 4, 0),
+        "left_bg": (30, 20, 0), "right_bg": (10, 5, 0),
+        "accent1": (255, 215, 0), "accent2": (240, 240, 240),
+        "label": "NEXT-GEN", "icon": "RANGE",
+        "badge_text": "500 MILE RANGE", "badge_color": (100, 60, 0),
+    },
+    {
+        "theme": "nextgen",
+        "bg": (20, 15, 0), "bg_top": (30, 22, 0), "bg_bot": (8, 6, 0),
+        "left_bg": (40, 30, 0), "right_bg": (10, 5, 0),
+        "accent1": (255, 180, 0), "accent2": (225, 225, 225),
+        "label": "500 MILES", "icon": "*",
+        "badge_text": "SOLID STATE", "badge_color": (90, 55, 0),
+    },
+    {
+        "theme": "nextgen",
+        "bg": (25, 10, 0), "bg_top": (36, 15, 0), "bg_bot": (10, 4, 0),
+        "left_bg": (50, 20, 0), "right_bg": (15, 5, 0),
+        "accent1": (255, 160, 0), "accent2": (255, 255, 255),
+        "label": "UPGRADE", "icon": "SELL",
+        "badge_text": "1000 MILES", "badge_color": (110, 50, 0),
+    },
+    {
+        "theme": "nextgen",
+        "bg": (12, 10, 2), "bg_top": (18, 14, 4), "bg_bot": (5, 4, 1),
+        "left_bg": (28, 22, 5), "right_bg": (6, 4, 0),
+        "accent1": (255, 200, 0), "accent2": (205, 205, 205),
+        "label": "RANGE", "icon": "MAX",
+        "badge_text": "800 KM RANGE", "badge_color": (80, 65, 0),
+    },
+    {
+        "theme": "nextgen",
+        "bg": (15, 5, 0), "bg_top": (22, 8, 0), "bg_bot": (6, 2, 0),
+        "left_bg": (30, 10, 0), "right_bg": (5, 0, 0),
+        "accent1": (255, 130, 0), "accent2": (255, 220, 0),
+        "label": "IMMEDIATELY", "icon": "NOW",
+        "badge_text": "NEXT YEAR EV", "badge_color": (100, 40, 0),
+    },
 
-    # --- Theme 4: Dark Brown / Gold / Range Next-Gen (Inspired by Image 4) ---
-    {"bg": (15,10,0), "left_bg": (30,20,0), "right_bg": (10,5,0), "accent1": (255,215,0), "accent2": (255,255,255), "label": "NEXT-GEN", "icon": "RANGE"},
-    {"bg": (20,15,0), "left_bg": (40,30,0), "right_bg": (10,5,0), "accent1": (255,180,0), "accent2": (200,200,200), "label": "500 MILES", "icon": "⚡"},
-    {"bg": (25,10,0), "left_bg": (50,20,0), "right_bg": (15,5,0), "accent1": (255,140,0), "accent2": (255,255,255), "label": "UPGRADE", "icon": "SELL"},
-    {"bg": (10,10,10), "left_bg": (25,25,25), "right_bg": (5,5,5), "accent1": (255,200,0), "accent2": (100,150,255), "label": "RANGE", "icon": "MAX"},
-    {"bg": (15,5,0), "left_bg": (30,10,0), "right_bg": (5,0,0), "accent1": (255,100,0), "accent2": (255,220,0), "label": "IMMEDIATELY", "icon": "NOW"},
+    # ══════════════════════════════════════════════════════════════════════
+    # THEME 4: "scam" — Dark Navy/Cyan, Reality-or-Scam (bkz. Image 4)
+    # ══════════════════════════════════════════════════════════════════════
+    {
+        "theme": "scam",
+        "bg": (0, 8, 28), "bg_top": (0, 12, 38), "bg_bot": (0, 3, 14),
+        "left_bg": (0, 15, 45), "right_bg": (0, 5, 20),
+        "accent1": (0, 200, 255), "accent2": (255, 200, 0),
+        "label": "FULL BREAKDOWN", "badge_icon": "* ", "icon": "DOC",
+        "badge_color": (0, 28, 88),
+        "badge1_text": "+ REALITY", "badge2_text": "x OR SCAM?",
+        "btn_text": ">> REAL DATA INSIDE",
+    },
+    {
+        "theme": "scam",
+        "bg": (0, 5, 22), "bg_top": (0, 8, 30), "bg_bot": (0, 2, 10),
+        "left_bg": (0, 12, 38), "right_bg": (0, 4, 16),
+        "accent1": (0, 220, 255), "accent2": (255, 215, 0),
+        "label": "DEBUNKED", "badge_icon": "~ ", "icon": "EXPOSED",
+        "badge_color": (0, 22, 78),
+        "badge1_text": "+ PROVEN", "badge2_text": "x MYTH?",
+        "btn_text": ">> SEE THE DATA",
+    },
+    {
+        "theme": "scam",
+        "bg": (0, 10, 35), "bg_top": (0, 15, 48), "bg_bot": (0, 4, 16),
+        "left_bg": (0, 20, 55), "right_bg": (0, 6, 22),
+        "accent1": (50, 180, 255), "accent2": (255, 210, 0),
+        "label": "TRUTH REVEALED", "badge_icon": "# ", "icon": "SCAN",
+        "badge_color": (8, 32, 95),
+        "badge1_text": "+ WORKS", "badge2_text": "x SCAM?",
+        "btn_text": ">> REAL TESTS",
+    },
+    {
+        "theme": "scam",
+        "bg": (0, 5, 30), "bg_top": (0, 8, 42), "bg_bot": (0, 2, 14),
+        "left_bg": (0, 10, 52), "right_bg": (0, 4, 22),
+        "accent1": (0, 240, 255), "accent2": (255, 185, 0),
+        "label": "REAL REVIEW", "badge_icon": "* ", "icon": "DATA",
+        "badge_color": (0, 18, 72),
+        "badge1_text": "+ LEGIT", "badge2_text": "x FRAUD?",
+        "btn_text": ">> BATTERY FACTS",
+    },
+    {
+        "theme": "scam",
+        "bg": (5, 5, 30), "bg_top": (8, 8, 42), "bg_bot": (2, 2, 14),
+        "left_bg": (10, 10, 50), "right_bg": (0, 0, 18),
+        "accent1": (30, 200, 255), "accent2": (255, 200, 50),
+        "label": "EXPOSED", "badge_icon": "~ ", "icon": "PROOF",
+        "badge_color": (12, 22, 82),
+        "badge1_text": "+ TRUTH", "badge2_text": "x LIE?",
+        "btn_text": ">> DATA INSIDE",
+    },
 ]
 
 LAYOUTS = ["split", "versus", "shock", "data",
@@ -826,6 +974,577 @@ def _layout_bold(W, H, lines, st, bg_image=None):
     return img
 
 
+# ── YouTube Premium Drawing Helpers ──────────────────────────────────────────
+
+def _draw_car_silhouette(draw, cx, cy, scale=1.0,
+                         body_color=(20, 25, 45), detail_color=(40, 50, 70)):
+    """Simple EV side-profile silhouette drawn with PIL polygons."""
+    w   = int(320 * scale)
+    hb  = int(48  * scale)   # body rectangle height
+    hc  = int(44  * scale)   # cabin height above body
+    wr  = int(24  * scale)   # wheel radius
+
+    # Positions: cy = wheel-bottom / ground line
+    wcy     = cy - wr                   # wheel centre Y
+    body_y2 = wcy - int(wr * 0.25)     # body bottom (slightly above wheel centre)
+    body_y1 = body_y2 - hb             # body top
+
+    # Main body rectangle
+    draw.rectangle([cx - w // 2, body_y1, cx + w // 2, body_y2], fill=body_color)
+
+    # Cabin trapezoid
+    cl = cx - int(w * 0.36)
+    cr = cx + int(w * 0.23)
+    cabin_pts = [
+        (cx - int(w * 0.43), body_y1),
+        (cl, body_y1 - hc),
+        (cr, body_y1 - hc),
+        (cx + int(w * 0.32), body_y1),
+    ]
+    draw.polygon(cabin_pts, fill=body_color)
+
+    # Windows (slightly lighter)
+    wt = body_y1 - hc + 5
+    wb = body_y1 - 4
+    wm = (cl + cr) // 2
+    draw.rectangle([cl + 5,  wt, wm - 3, wb], fill=detail_color)
+    draw.rectangle([wm + 3,  wt, cr - 5, wb], fill=detail_color)
+
+    # Wheels
+    for wx in [cx - int(w * 0.29), cx + int(w * 0.24)]:
+        draw.ellipse([wx - wr, wcy - wr, wx + wr, wcy + wr], fill=(15, 15, 22))
+        rim = int(wr * 0.50)
+        draw.ellipse([wx - rim, wcy - rim, wx + rim, wcy + rim], fill=body_color)
+
+    # Tail-light
+    tl_x = cx + w // 2 - 5
+    draw.rectangle([tl_x - 6, body_y1 + hb // 3,
+                    tl_x,     body_y1 + hb * 2 // 3], fill=(220, 30, 30))
+
+
+def _draw_crosshair_circle(draw, cx, cy, radius, color):
+    """Targeting-circle / radar ring used in the 'shocking' layout."""
+    for r in [radius, int(radius * 0.65), int(radius * 0.35)]:
+        draw.arc([cx - r, cy - r, cx + r, cy + r], 0, 360, fill=color, width=1)
+    gap = int(radius * 0.11)
+    # Horizontal
+    draw.line([cx - radius, cy, cx - gap, cy], fill=color, width=1)
+    draw.line([cx + gap,    cy, cx + radius, cy], fill=color, width=1)
+    # Vertical
+    draw.line([cx, cy - radius, cx, cy - gap], fill=color, width=1)
+    draw.line([cx, cy + gap,    cx, cy + radius], fill=color, width=1)
+
+
+def _draw_line_chart(draw, bx, by, bw, bh, line_col, font_func):
+    """Declining price chart drawn inside an already-rendered box."""
+    cx0 = bx + 22
+    cy0 = by + 22
+    cw  = bw - 44
+    ch  = bh - 55
+
+    # 8 data points describing a steep downward curve
+    ts = [0.00, 0.10, 0.22, 0.36, 0.52, 0.67, 0.83, 1.00]
+    vs = [0.01, 0.08, 0.18, 0.33, 0.52, 0.68, 0.82, 0.96]
+    pts = [(cx0 + int(cw * t), cy0 + int(ch * v)) for t, v in zip(ts, vs)]
+
+    for i in range(len(pts) - 1):
+        draw.line([pts[i], pts[i + 1]], fill=line_col, width=3)
+
+    # End-point dot
+    r = 6
+    draw.ellipse([pts[-1][0] - r, pts[-1][1] - r,
+                  pts[-1][0] + r, pts[-1][1] + r], fill=(40, 185, 80))
+    draw.ellipse([pts[0][0] - r, pts[0][1] - r,
+                  pts[0][0] + r, pts[0][1] + r], fill=(200, 50, 50))
+
+    # Year labels on x-axis
+    years = ["2010", "2015", "2020", "2024"]
+    f_s = font_func(13, False)
+    for i, yr in enumerate(years):
+        xi = cx0 + int(cw * i / (len(years) - 1))
+        draw.text((xi - 16, cy0 + ch + 8), yr, font=f_s, fill=(110, 135, 148))
+
+
+def _draw_wireless_pad(draw, cx, cy, color):
+    """Concentric ellipses simulating a wireless charging glow pad."""
+    steps = 6
+    for i in range(steps, 0, -1):
+        intensity = i / steps
+        col = tuple(min(255, int(c * intensity * 0.70)) for c in color)
+        ew = i * 38
+        eh = i * 10
+        draw.ellipse([cx - ew, cy - eh, cx + ew, cy + eh], outline=col, width=2)
+
+
+# ── YouTube Style Layout 1: SHOCKING (Purple/AI, Image 1) ─────────────────────
+def _layout_yt_shocking(W, H, lines, st, bg_image=None):
+    """
+    Matches Image 1 design:
+    * Very dark purple gradient background
+    * Left side: 4-tier stacked text (purple | silver | purple | gold)
+    * Right side: faded crosshair circle + EV car silhouette + ground glow
+    * Bottom-left: coloured badge with icon and label
+    * Stat annotations near crosshair (e.g. '289mi ACTUAL')
+    """
+    a1 = st["accent1"]   # purple/violet
+    a2 = st["accent2"]   # gold
+
+    img = _get_base_image(W, H, st, bg_image)
+    draw = ImageDraw.Draw(img)
+
+    if not bg_image:
+        for y in range(H):
+            t = y / H
+            c = _mix(st.get("bg_top", (20, 0, 42)), st.get("bg_bot", (8, 0, 14)), t)
+            draw.line([(0, y), (W, y)], fill=c)
+
+    img = _radial_glow(img, 120, H // 2, 480, a1, 0.28)
+    img = _radial_glow(img, W - 80, H // 2, 380, a2, 0.09)
+    draw = ImageDraw.Draw(img)
+
+    # ── RIGHT: crosshair + car + ground glow ──
+    cross_cx = int(W * 0.735)
+    cross_cy = int(H * 0.40)
+    cross_r  = int(H * 0.355)
+    cross_col = tuple(min(255, int(c * 0.72)) for c in a1)
+    _draw_crosshair_circle(draw, cross_cx, cross_cy, cross_r, cross_col)
+
+    car_cx = int(W * 0.730)
+    car_cy = int(H * 0.735)
+    for r in range(5, 0, -1):
+        col = tuple(min(255, int(c * (r / 5) * 0.35)) for c in a1)
+        draw.ellipse([car_cx - r * 42, car_cy - r * 7,
+                      car_cx + r * 42, car_cy + r * 7], fill=col)
+    _draw_car_silhouette(draw, car_cx, car_cy, scale=1.0,
+                         body_color=(18, 12, 32), detail_color=(38, 28, 55))
+
+    # Stat annotations (e.g. "289mi ACTUAL" / "53mi DIFF")
+    stat1 = st.get("stat1", "289mi")
+    stat2 = st.get("stat2", "53mi")
+    sf = _fnt(22)
+    lf = _fnt(13, False)
+    sx = cross_cx + int(cross_r * 0.14)
+    sy = cross_cy - int(H * 0.085)
+    draw.text((sx, sy), stat1, font=sf, fill=(215, 215, 235))
+    draw.text((sx + int(draw.textlength(stat1, font=sf)) + 5, sy + 5),
+              "ACTUAL", font=lf, fill=(145, 145, 175))
+    sy2 = sy + 32
+    draw.text((sx, sy2), stat2, font=sf, fill=(215, 215, 235))
+    draw.text((sx + int(draw.textlength(stat2, font=sf)) + 5, sy2 + 5),
+              "DIFF", font=lf, fill=(145, 145, 175))
+
+    # ── LEFT: 4-tier text stack ──
+    text_x     = 44
+    zone_w     = int(W * 0.57)
+
+    line_a = lines[0]                                # small purple (top label)
+    line_b = lines[1]                                # huge silver (main subject)
+    line_c_words = lines[2].split() if lines[2] else []
+    if len(line_c_words) >= 2:
+        line_c = " ".join(line_c_words[:-1])
+        line_d = line_c_words[-1]
+    elif len(line_c_words) == 1:
+        line_c = ""
+        line_d = line_c_words[0]
+    else:
+        line_c = ""
+        line_d = st.get("label", "SHOCKING")
+
+    color_a = a1
+    color_b = (208, 210, 228)
+    color_c = tuple(min(255, int(c * 0.78)) for c in a1)
+    color_d = a2
+
+    fa = _auto_font(draw, line_a, zone_w, 42)
+    fb = _auto_font(draw, line_b, zone_w, 108)
+    fc = _auto_font(draw, line_c, zone_w, 36) if line_c else None
+    fd = _auto_font(draw, line_d, zone_w, 108)
+
+    GAP = 6
+    total_h = (
+        _text_h(draw, line_a, fa) + GAP
+        + _text_h(draw, line_b, fb) + GAP
+        + (_text_h(draw, line_c, fc) + GAP if (fc and line_c) else 0)
+        + _text_h(draw, line_d, fd)
+    )
+    y = _block_top(total_h, 28, H - 80)
+
+    draw.text((text_x, y), line_a, font=fa, fill=color_a)
+    y += _text_h(draw, line_a, fa) + GAP
+
+    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+        draw.text((text_x + ox, y + oy), line_b, font=fb,
+                  fill=tuple(c // 5 for c in color_b))
+    draw.text((text_x, y), line_b, font=fb, fill=color_b)
+    y += _text_h(draw, line_b, fb) + GAP
+
+    if fc and line_c:
+        draw.text((text_x, y), line_c, font=fc, fill=color_c)
+        y += _text_h(draw, line_c, fc) + GAP
+
+    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+        draw.text((text_x + ox, y + oy), line_d, font=fd,
+                  fill=tuple(c // 4 for c in color_d))
+    draw.text((text_x, y), line_d, font=fd, fill=color_d)
+
+    # ── BOTTOM-LEFT BADGE ──
+    badge_icon  = st.get("badge_icon", "* ")
+    badge_label = st.get("label", "AI ANALYSIS")
+    badge_txt   = f"{badge_icon}{badge_label}"
+    bf = _fnt(21)
+    bw_px = int(draw.textlength(badge_txt, font=bf))
+    bx, by = 28, H - 64
+    badge_bg = st.get("badge_color", (72, 0, 148))
+    draw.rectangle([bx, by, bx + bw_px + 22, by + 34], fill=badge_bg)
+    draw.text((bx + 10, by + 7), badge_txt, font=bf, fill=(255, 255, 255))
+
+    return img
+
+
+# ── YouTube Style Layout 2: CRASH (Dark Teal, Image 2) ────────────────────────
+def _layout_yt_crash(W, H, lines, st, bg_image=None):
+    """
+    Matches Image 2 design:
+    * Dark navy/teal gradient background
+    * Left: title line | huge teal keyword | huge silver % stat | teal sub-line
+    * Right: rounded chart box with declining line graph + price annotations
+    * Bottom-left: subtitle question text
+    """
+    a1 = st["accent1"]   # teal / green
+    a2 = st["accent2"]   # red / contrast
+
+    img = _get_base_image(W, H, st, bg_image)
+    draw = ImageDraw.Draw(img)
+
+    if not bg_image:
+        for y in range(H):
+            t = y / H
+            c = _mix(st.get("bg_top", (0, 12, 36)), st.get("bg_bot", (0, 4, 14)), t)
+            draw.line([(0, y), (W, y)], fill=c)
+
+    img = _radial_glow(img, 90, H // 3, 380, a1, 0.18)
+    draw = ImageDraw.Draw(img)
+
+    # ── RIGHT: chart box ──
+    cx = int(W * 0.545)
+    cy = int(H * 0.095)
+    cw = int(W * 0.415)
+    ch = int(H * 0.725)
+
+    # Box outline
+    draw.rectangle([cx, cy, cx + cw, cy + ch],
+                   fill=(4, 16, 26),
+                   outline=tuple(max(0, c // 3) for c in a1),
+                   width=1)
+
+    # Line chart
+    _draw_line_chart(draw, cx, cy, cw, ch, a1, _fnt)
+
+    # High-price label (red badge, top-left of chart)
+    ph_txt = st.get("price_high", "$1,100/kWh")
+    ph_f   = _fnt(17)
+    ph_w   = int(draw.textlength(ph_txt, font=ph_f))
+    ph_x   = cx + 14
+    ph_y   = cy + 14
+    draw.rectangle([ph_x, ph_y, ph_x + ph_w + 12, ph_y + 28], fill=(175, 40, 40))
+    draw.text((ph_x + 6, ph_y + 6), ph_txt, font=ph_f, fill=(255, 255, 255))
+
+    # Down arrow
+    ax = cx + cw - 48
+    ay = cy + 18
+    draw.polygon([(ax, ay), (ax + 28, ay), (ax + 14, ay + 38)], fill=a1)
+
+    # Low-price label (green badge, bottom-right of chart)
+    pl_txt = st.get("price_low", "$200/kWh")
+    pl_f   = _fnt(17)
+    pl_w   = int(draw.textlength(pl_txt, font=pl_f))
+    pl_x   = cx + cw - pl_w - 20
+    pl_y   = cy + ch - 36
+    draw.rectangle([pl_x, pl_y, pl_x + pl_w + 12, pl_y + 26], fill=(28, 148, 58))
+    draw.text((pl_x + 6, pl_y + 5), pl_txt, font=pl_f, fill=(255, 255, 255))
+
+    # ── LEFT: text stack ──
+    tx    = 36
+    zone  = int(W * 0.505)
+
+    line1 = lines[0]                                        # e.g. "BATTERY PRICES"
+    line2 = lines[1]                                        # e.g. "CRASHED"  (huge teal)
+    stat  = st.get("big_stat", "82%")                      # huge silver
+    line4 = lines[2] if lines[2] else "IN 10 YEARS"        # teal sub-line
+    sub   = st.get("subtitle", "WHAT HAPPENS NEXT?")       # bottom question
+
+    f1   = _auto_font(draw, line1, zone, 46)
+    f2   = _auto_font(draw, line2, zone, 110)
+    f3   = _auto_font(draw, stat,  zone, 110)
+    f4   = _auto_font(draw, line4, zone, 42)
+    f_sb = _fnt(22, False)
+
+    GAP  = 4
+    h1   = _text_h(draw, line1, f1)
+    h2   = _text_h(draw, line2, f2)
+    h3   = _text_h(draw, stat,  f3)
+    h4   = _text_h(draw, line4, f4)
+    tot  = h1 + GAP + h2 + GAP + h3 + GAP + h4
+    y    = _block_top(tot, 28, H - 58)
+
+    # Line 1 – white
+    draw.text((tx, y), line1, font=f1, fill=(218, 220, 232))
+    y += h1 + GAP
+
+    # Line 2 – huge teal (with faint outline shadow)
+    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+        draw.text((tx + ox, y + oy), line2, font=f2,
+                  fill=tuple(c // 4 for c in a1))
+    draw.text((tx, y), line2, font=f2, fill=a1)
+    y += h2 + GAP
+
+    # Vertical accent bar beside stat
+    draw.rectangle([tx - 2, y + 2, tx + 8, y + h3 - 2], fill=a2)
+
+    # Stat – huge silver
+    for ox, oy in [(-3, 0), (3, 0), (0, -3), (0, 3)]:
+        draw.text((tx + 14 + ox, y + oy), stat, font=f3, fill=(38, 38, 48))
+    draw.text((tx + 14, y), stat, font=f3, fill=(196, 200, 212))
+    y += h3 + GAP
+
+    # Line 4 – teal
+    draw.text((tx, y), line4, font=f4, fill=a1)
+
+    # Subtitle at bottom
+    draw.text((tx, H - 52), sub, font=f_sb, fill=(175, 188, 198))
+
+    return img
+
+
+# ── YouTube Style Layout 3: NEXTGEN (Dark Amber, Image 3) ─────────────────────
+def _layout_yt_nextgen(W, H, lines, st, bg_image=None):
+    """
+    Matches Image 3 design:
+    * Dark amber/warm gradient background
+    * Left: multi-line gold/white/gold stacked text
+    * Lightning bolt icons scattered upper-right area
+    * Right: EV car silhouette with warm ground glow
+    * Top-right: rounded badge (e.g. '500 MILE RANGE')
+    """
+    a1 = st["accent1"]   # gold / amber
+    a2 = st["accent2"]   # white / silver
+
+    img = _get_base_image(W, H, st, bg_image)
+    draw = ImageDraw.Draw(img)
+
+    if not bg_image:
+        for y in range(H):
+            t = y / H
+            c = _mix(st.get("bg_top", (22, 15, 0)), st.get("bg_bot", (6, 4, 0)), t)
+            draw.line([(0, y), (W, y)], fill=c)
+
+    img = _radial_glow(img, int(W * 0.72), H // 2, 500, a1, 0.20)
+    img = _radial_glow(img, 100, H // 2, 380, a1, 0.13)
+    draw = ImageDraw.Draw(img)
+
+    # ── Lightning bolts ──
+    def _bolt(bx, by, sz, col):
+        pts = [
+            (bx + sz // 2, by),
+            (bx, by + sz // 2),
+            (bx + sz // 3, by + sz // 2),
+            (bx - sz // 3, by + sz),
+            (bx + sz, by + sz // 2),
+            (bx + sz * 2 // 3, by + sz // 2),
+        ]
+        draw.polygon(pts, fill=col)
+
+    bc = tuple(min(255, int(c * 0.55)) for c in a1)
+    _bolt(int(W * 0.505), int(H * 0.048), 26, bc)
+    _bolt(int(W * 0.565), int(H * 0.125), 19, bc)
+    _bolt(int(W * 0.618), int(H * 0.028), 21, bc)
+
+    # ── RIGHT: car + warm ground glow ──
+    car_cx = int(W * 0.745)
+    car_cy = int(H * 0.695)
+    for r in range(6, 0, -1):
+        col = tuple(min(255, int(c * (r / 6) * 0.42)) for c in a1)
+        ew, eh = r * 40, r * 9
+        draw.ellipse([car_cx - ew, car_cy + 8 - eh // 2,
+                      car_cx + ew, car_cy + 8 + eh // 2], fill=col)
+    _draw_car_silhouette(draw, car_cx, car_cy, scale=1.08,
+                         body_color=(10, 8, 2), detail_color=(22, 18, 4))
+
+    # ── TOP-RIGHT BADGE ──
+    badge_txt = st.get("badge_text", "500 MILE RANGE")
+    badge_bg  = st.get("badge_color", (98, 58, 0))
+    bf        = _fnt(19)
+    bw_px     = int(draw.textlength(badge_txt, font=bf))
+    brx = W - bw_px - 34
+    bry = 14
+    draw.rectangle([brx, bry, brx + bw_px + 18, bry + 34], fill=badge_bg)
+    draw.text((brx + 9, bry + 8), badge_txt, font=bf, fill=a1)
+
+    # ── LEFT: text stack ──
+    tx    = 30
+    zone  = int(W * 0.545)
+
+    line1 = lines[0]                       # e.g. "NEXT-GEN EVs" – gold
+    line2 = lines[1]                       # e.g. "WILL MAKE YOU" – white
+    words3 = lines[2].split() if lines[2] else []
+    if len(words3) >= 3:
+        line3a = " ".join(words3[:2])
+        line3b = " ".join(words3[2:])
+    elif len(words3) == 2:
+        line3a, line3b = words3[0], words3[1]
+    elif len(words3) == 1:
+        line3a, line3b = "", words3[0]
+    else:
+        line3a, line3b = "", st.get("label", "IMMEDIATELY")
+
+    f1  = _auto_font(draw, line1,  zone, 82)
+    f2  = _auto_font(draw, line2,  zone, 52)
+    f3a = _auto_font(draw, line3a, zone, 62) if line3a else None
+    f3b = _auto_font(draw, line3b, zone, 82) if line3b else None
+
+    GAP   = 8
+    h1    = _text_h(draw, line1, f1)
+    h2    = _text_h(draw, line2, f2)
+    h3a   = _text_h(draw, line3a, f3a) if (f3a and line3a) else 0
+    h3b   = _text_h(draw, line3b, f3b) if (f3b and line3b) else 0
+    tot   = h1 + GAP + h2 + GAP + (h3a + GAP if h3a else 0) + h3b
+    y     = _block_top(tot, 22, H - 26)
+
+    # Line 1 – gold
+    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+        draw.text((tx + ox, y + oy), line1, font=f1,
+                  fill=tuple(c // 4 for c in a1))
+    draw.text((tx, y), line1, font=f1, fill=a1)
+    y += h1 + GAP
+
+    # Line 2 – white/silver
+    draw.text((tx, y), line2, font=f2, fill=a2)
+    y += h2 + GAP
+
+    # Line 3a – gold
+    if f3a and line3a:
+        draw.text((tx, y), line3a, font=f3a, fill=a1)
+        y += h3a + GAP
+
+    # Line 3b – gold (bigger, "IMMEDIATELY")
+    if f3b and line3b:
+        for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+            draw.text((tx + ox, y + oy), line3b, font=f3b,
+                      fill=tuple(c // 4 for c in a1))
+        draw.text((tx, y), line3b, font=f3b, fill=a1)
+
+    return img
+
+
+# ── YouTube Style Layout 4: SCAM (Dark Navy/Cyan, Image 4) ───────────────────
+def _layout_yt_scam(W, H, lines, st, bg_image=None):
+    """
+    Matches Image 4 design:
+    * Dark navy gradient background
+    * Left: white title | huge cyan keyword | gold question
+    * Top-right: dual pill badges (green + red)
+    * Right: EV car with wireless charging pad glow underneath
+    * Bottom-left: blue badge with icon + label
+    * Bottom-center: outlined button with data label
+    """
+    a1 = st["accent1"]   # cyan / blue
+    a2 = st["accent2"]   # gold / amber
+
+    img = _get_base_image(W, H, st, bg_image)
+    draw = ImageDraw.Draw(img)
+
+    if not bg_image:
+        for y in range(H):
+            t = y / H
+            c = _mix(st.get("bg_top", (0, 12, 40)), st.get("bg_bot", (0, 3, 16)), t)
+            draw.line([(0, y), (W, y)], fill=c)
+
+    img = _radial_glow(img, int(W * 0.66), H // 2, 540, a1, 0.16)
+    draw = ImageDraw.Draw(img)
+
+    # ── TOP-RIGHT: dual badge buttons ──
+    bf_b  = _fnt(19)
+    b1_txt = st.get("badge1_text", "+ REALITY")
+    b2_txt = st.get("badge2_text", "x OR SCAM?")
+    b1_w = int(draw.textlength(b1_txt, font=bf_b))
+    b2_w = int(draw.textlength(b2_txt, font=bf_b))
+
+    # Place badges so they end 16 px from right edge
+    total_badge_w = b1_w + 14 + b2_w + 14 + 8  # widths + internal padding + gap
+    b1_x = W - 16 - total_badge_w
+    b1_y, b_h = 14, 34
+    draw.rectangle([b1_x, b1_y, b1_x + b1_w + 14, b1_y + b_h], fill=(28, 135, 50))
+    draw.text((b1_x + 7, b1_y + 8), b1_txt, font=bf_b, fill=(255, 255, 255))
+
+    b2_x = b1_x + b1_w + 14 + 8
+    draw.rectangle([b2_x, b1_y, b2_x + b2_w + 14, b1_y + b_h], fill=(185, 35, 35))
+    draw.text((b2_x + 7, b1_y + 8), b2_txt, font=bf_b, fill=(255, 255, 255))
+
+    # ── RIGHT: car + wireless charging pad ──
+    car_cx = int(W * 0.730)
+    car_cy = int(H * 0.600)
+    _draw_car_silhouette(draw, car_cx, car_cy, scale=1.04,
+                         body_color=(9, 13, 32), detail_color=(18, 28, 58))
+    _draw_wireless_pad(draw, car_cx, car_cy + 38, a1)
+
+    # ── LEFT: text stack ──
+    tx   = 36
+    zone = int(W * 0.545)
+
+    line1 = lines[0]                                         # white, large
+    line2 = lines[1]                                         # huge cyan
+    line3 = lines[2] if lines[2] else "REALITY OR SCAM?"    # gold question
+
+    f1 = _auto_font(draw, line1, zone, 68)
+    f2 = _auto_font(draw, line2, zone, 114)
+    f3 = _auto_font(draw, line3, zone, 46)
+
+    GAP  = 8
+    h1   = _text_h(draw, line1, f1)
+    h2   = _text_h(draw, line2, f2)
+    h3   = _text_h(draw, line3, f3)
+    tot  = h1 + GAP + h2 + GAP + h3
+    y    = _block_top(tot, 55, H - 98)
+
+    # Line 1 – white
+    draw.text((tx, y), line1, font=f1, fill=(228, 232, 245))
+    y += h1 + GAP
+
+    # Line 2 – huge cyan
+    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+        draw.text((tx + ox, y + oy), line2, font=f2,
+                  fill=tuple(c // 4 for c in a1))
+    draw.text((tx, y), line2, font=f2, fill=a1)
+    y += h2 + GAP
+
+    # Line 3 – gold
+    draw.text((tx, y), line3, font=f3, fill=a2)
+
+    # ── BOTTOM-LEFT BADGE ──
+    badge_icon  = st.get("badge_icon", "* ")
+    badge_label = st.get("label", "FULL BREAKDOWN")
+    badge_txt   = f"{badge_icon}{badge_label}"
+    bf2   = _fnt(20)
+    bw_px = int(draw.textlength(badge_txt, font=bf2))
+    bx, by = 20, H - 62
+    badge_bg = st.get("badge_color", (0, 26, 84))
+    draw.rectangle([bx, by, bx + bw_px + 20, by + 34], fill=badge_bg)
+    draw.text((bx + 9, by + 7), badge_txt, font=bf2, fill=(255, 255, 255))
+
+    # ── BOTTOM-CENTER BUTTON ──
+    btn_txt = st.get("btn_text", ">> REAL DATA INSIDE")
+    btn_f   = _fnt(18)
+    btn_w   = int(draw.textlength(btn_txt, font=btn_f))
+    btn_x   = car_cx - btn_w // 2 - 10
+    btn_y   = H - 56
+    btn_bg  = tuple(max(0, c // 7) for c in a1)
+    draw.rectangle([btn_x, btn_y, btn_x + btn_w + 20, btn_y + 32],
+                   fill=btn_bg, outline=a1, width=2)
+    draw.text((btn_x + 10, btn_y + 7), btn_txt, font=btn_f, fill=a1)
+
+    return img
+
+
 # ── Public class ──────────────────────────────────────────────────────────────
 class ThumbnailGenerator:
 
@@ -870,7 +1589,7 @@ class ThumbnailGenerator:
             
             if all_files:
                 # Konuyla ilgili video aramayı deneyelim (basit filtreleme)
-                topic_words = set(topic_key.split("_"))
+                topic_words = set(topic.split("_"))
                 relevant_files = []
                 for f in all_files:
                     f_lower = os.path.basename(f).lower()
@@ -894,21 +1613,33 @@ class ThumbnailGenerator:
 
         lines = _split_title(title)
         try:
-            dispatch = {
-                "split":     _layout_split,
-                "versus":    _layout_versus,
-                "shock":     _layout_shock,
-                "data":      _layout_data,
-                "neon":      _layout_neon,
-                "minimal":   _layout_minimal,
-                "alert":     _layout_alert,
-                "cinematic": _layout_cinematic,
-                "grid":      _layout_grid,
-                "bold":      _layout_bold,
+            # ── YouTube Premium tema-based dispatch ──
+            _YT_LAYOUTS = {
+                "shocking": _layout_yt_shocking,
+                "crash":    _layout_yt_crash,
+                "nextgen":  _layout_yt_nextgen,
+                "scam":     _layout_yt_scam,
             }
-            
-            # bg_image parametresini geçiyoruz
-            img = dispatch[layout](W, H, lines, st, bg_image=video_frame_img)
+
+            theme = st.get("theme", "")
+            if theme in _YT_LAYOUTS:
+                img = _YT_LAYOUTS[theme](W, H, lines, st, bg_image=video_frame_img)
+            else:
+                # Legacy fallback for any palette without a theme key
+                _legacy = {
+                    "split":     _layout_split,
+                    "versus":    _layout_versus,
+                    "shock":     _layout_shock,
+                    "data":      _layout_data,
+                    "neon":      _layout_neon,
+                    "minimal":   _layout_minimal,
+                    "alert":     _layout_alert,
+                    "cinematic": _layout_cinematic,
+                    "grid":      _layout_grid,
+                    "bold":      _layout_bold,
+                }
+                layout = random.choice(LAYOUTS)
+                img = _legacy[layout](W, H, lines, st, bg_image=video_frame_img)
 
             if not output_path:
                 safe_t = re.sub(r"[^\w]", "_", title[:30])
