@@ -95,117 +95,71 @@ def _mix(c1, c2, t):
     return tuple(int(c1[i] * (1 - t) + c2[i] * t) for i in range(3))
 
 
-# ── Topic styles with expanded random stats pools ─────────────────────────────
-TOPIC_STYLES = {
-    "electric_vehicle": {
-        "bg":       (0, 0, 0),
-        "left_bg":  (10, 0, 0),
-        "right_bg": (0, 10, 24),
-        "accent1":  (255, 34, 0),
-        "accent2":  (0, 212, 255),
-        "label":    "EV DATA",
-        "icon":     "EV",
-        "stats": [
-            ("+300%", "EV SALES GROWTH",      (255, 34, 0)),
-            ("$0",    "GAS CAR FUTURE VALUE",  (0, 212, 255)),
-            ("500MI", "NEW EV RANGE RECORD",   (255, 204, 0)),
-            ("800V",  "ULTRA FAST CHARGING",   (0, 255, 136)),
-            ("2.1s",  "0-60 MPH TIME RECORD",  (255, 0, 128)),
-            ("150K+", "EV CHARGERS PLANNED",   (0, 212, 255)),
-            ("-45%",  "BATTERY COST REDUCTION", (0, 255, 136)),
-            ("350KW", "MAX CHARGING SPEED",    (255, 107, 0)),
-            ("10 MIN", "CHARGE TIME TARGET",   (0, 212, 255)),
-            ("99%",   "MOTOR EFFICIENCY",      (255, 204, 0))
-        ],
-    },
-    "battery_tech": {
-        "bg":       (0, 0, 0),
-        "left_bg":  (10, 5, 0),
-        "right_bg": (0, 10, 5),
-        "accent1":  (255, 107, 0),
-        "accent2":  (0, 255, 136),
-        "label":    "BATTERY",
-        "icon":     "[B]",
-        "stats": [
-            ("1M KM",  "LFP LIFESPAN",        (255, 107, 0)),
-            ("10 MIN", "FUTURE CHARGE TIME",   (0, 212, 255)),
-            ("-45%",   "WINTER RANGE LOSS",    (0, 255, 136)),
-            ("500 WH", "SOLID STATE DENSITY",  (255, 204, 0)),
-            ("92%",    "RECYCLING EFFICIENCY", (0, 212, 255)),
-            ("15 YRS", "BATTERY DEGRADATION",  (255, 107, 0)),
-            ("SODIUM", "NEXT-GEN CELL TECH",   (0, 255, 136)),
-            ("$60/KWH", "CELL COST TARGET",     (255, 204, 0))
-        ],
-    },
-    "artificial_intelligence": {
-        "bg":       (0, 0, 0),
-        "left_bg":  (5, 0, 10),
-        "right_bg": (0, 0, 10),
-        "accent1":  (139, 0, 255),
-        "accent2":  (0, 212, 255),
-        "label":    "AI TECH",
-        "icon":     "AI",
-        "stats": [
-            ("10x",  "SPEED VS HUMAN",  (139, 0, 255)),
-            ("2030", "AGI PREDICTION",  (0, 212, 255)),
-            ("$1T",  "AI MARKET SIZE",  (255, 204, 0)),
-            ("100T", "PARAMETERS SIZE", (0, 255, 136)),
-            ("98.4%", "ACCURACY RECORD", (255, 0, 128)),
-            ("1 SEC", "REALTIME TRANSLATION", (0, 212, 255)),
-            ("GPT-5", "NEXT-GEN MODEL RUN",  (255, 107, 0))
-        ],
-    },
-    "robotics": {
-        "bg":       (0, 0, 0),
-        "left_bg":  (0, 10, 0),
-        "right_bg": (0, 5, 5),
-        "accent1":  (0, 255, 136),
-        "accent2":  (255, 255, 255),
-        "label":    "ROBOTICS",
-        "icon":     "[R]",
-        "stats": [
-            ("40%",   "JOBS AUTOMATED",  (0, 255, 136)),
-            ("$1.5T", "ROBOTICS MARKET", (0, 212, 255)),
-            ("24/7",  "ROBOT UPTIME",    (255, 204, 0)),
-            ("0.5s",  "REACTION DELAY",  (255, 0, 128)),
-            ("HUMAN", "DEXTERITY LEVEL", (255, 255, 255)),
-            ("TESLA", "OPTIMUS GEN 2",   (0, 255, 136))
-        ],
-    },
-    "future_tech": {
-        "bg":       (0, 0, 0),
-        "left_bg":  (5, 0, 10),
-        "right_bg": (10, 0, 5),
-        "accent1":  (255, 0, 255),
-        "accent2":  (255, 204, 0),
-        "label":    "FUTURE",
-        "icon":     ">>",
-        "stats": [
-            ("+300%", "EV SALES GROWTH",      (0, 212, 255)),
-            ("$0",    "GAS CAR FUTURE VALUE",  (255, 180, 0)),
-            ("500MI", "NEW EV RANGE RECORD",   (0, 255, 136)),
-            ("FUSION", "NET ENERGY GAIN",     (255, 0, 255)),
-            ("QUANTUM", "COMPUTING ADVANCE",  (0, 212, 255)),
-            ("SPACE", "ORBITAL SOLAR POWER",  (255, 204, 0))
-        ],
-    },
-    "default": {
-        "bg":       (0, 0, 0),
-        "left_bg":  (10, 0, 0),
-        "right_bg": (0, 10, 24),
-        "accent1":  (255, 34, 0),
-        "accent2":  (0, 212, 255),
-        "label":    "EV TECH",
-        "icon":     "EV",
-        "stats": [
-            ("+300%", "EV SALES GROWTH",      (255, 34, 0)),
-            ("$0",    "GAS CAR FUTURE VALUE",  (0, 212, 255)),
-            ("500MI", "NEW EV RANGE RECORD",   (255, 204, 0)),
-            ("800V",  "ULTRA FAST CHARGING",   (0, 255, 136)),
-            ("2.1s",  "0-60 MPH TIME RECORD",  (255, 0, 128))
-        ],
-    },
-}
+# ── Premium 20 Thumbnail Styles ────────────────────────────────────────────────
+GLOBAL_STATS_POOL = [
+    ("+300%", "EV SALES GROWTH", (0, 212, 255)),
+    ("$0", "GAS CAR FUTURE VALUE", (255, 34, 0)),
+    ("500MI", "NEW EV RANGE RECORD", (255, 204, 0)),
+    ("800V", "ULTRA FAST CHARGING", (0, 255, 136)),
+    ("2.1s", "0-60 MPH TIME RECORD", (255, 0, 128)),
+    ("150K+", "EV CHARGERS PLANNED", (0, 212, 255)),
+    ("-45%", "BATTERY COST REDUCTION", (0, 255, 136)),
+    ("350KW", "MAX CHARGING SPEED", (255, 107, 0)),
+    ("10 MIN", "CHARGE TIME TARGET", (0, 212, 255)),
+    ("99%", "MOTOR EFFICIENCY", (255, 204, 0)),
+    ("1M KM", "LFP LIFESPAN", (255, 107, 0)),
+    ("500 WH", "SOLID STATE DENSITY", (255, 204, 0)),
+    ("15 YRS", "BATTERY DEGRADATION", (255, 107, 0)),
+    ("SODIUM", "NEXT-GEN CELL TECH", (0, 255, 136)),
+    ("10x", "SPEED VS HUMAN", (139, 0, 255)),
+    ("2030", "AGI PREDICTION", (0, 212, 255)),
+    ("40%", "JOBS AUTOMATED", (0, 255, 136)),
+    ("FUSION", "NET ENERGY GAIN", (255, 0, 255)),
+    ("QUANTUM", "COMPUTING ADVANCE", (0, 212, 255))
+]
+
+PREMIUM_PALETTES = [
+    # 1. Koyu Lacivert + Cyan (Tesla vs BYD tarzı)
+    {"bg": (0,0,0), "left_bg": (0,10,30), "right_bg": (0,5,15), "accent1": (0,212,255), "accent2": (255,255,255), "label": "EV DATA", "icon": "EV"},
+    # 2. Koyu Mor + Neon Cyan (Solid State)
+    {"bg": (0,0,0), "left_bg": (20,0,40), "right_bg": (10,0,20), "accent1": (139,0,255), "accent2": (0,255,136), "label": "BATTERY", "icon": "[B]"},
+    # 3. Koyu Teal + Altın (Cost Comparison)
+    {"bg": (0,0,0), "left_bg": (0,30,30), "right_bg": (0,15,15), "accent1": (0,255,200), "accent2": (255,204,0), "label": "FINANCE", "icon": "$$"},
+    # 4. Koyu Kırmızı + Beyaz (Battery Degradation)
+    {"bg": (0,0,0), "left_bg": (40,0,0), "right_bg": (20,0,0), "accent1": (255,34,0), "accent2": (255,255,255), "label": "WARNING", "icon": "!!"},
+    # 5. Altın Sarısı + Siyah (Free Charging)
+    {"bg": (0,0,0), "left_bg": (40,30,0), "right_bg": (20,15,0), "accent1": (255,204,0), "accent2": (255,255,255), "label": "HACK", "icon": ">>"},
+    # 6. Koyu Mavi + Turuncu (Tax Credits)
+    {"bg": (0,0,0), "left_bg": (0,20,50), "right_bg": (0,10,25), "accent1": (255,107,0), "accent2": (0,212,255), "label": "POLICY", "icon": "GOV"},
+    # 7. Turuncu Amber + Sarı (Fast Charging)
+    {"bg": (0,0,0), "left_bg": (40,20,0), "right_bg": (20,10,0), "accent1": (255,140,0), "accent2": (255,220,0), "label": "SPEED", "icon": "⚡"},
+    # 8. Buz Mavisi + Koyu Mavi (Winter Survival)
+    {"bg": (0,0,0), "left_bg": (0,40,60), "right_bg": (0,20,30), "accent1": (100,200,255), "accent2": (255,255,255), "label": "TEST", "icon": "❄️"},
+    # 9. Koyu Mor + Kırmızı (Hidden Costs)
+    {"bg": (0,0,0), "left_bg": (30,0,40), "right_bg": (15,0,20), "accent1": (255,0,100), "accent2": (150,0,255), "label": "SECRET", "icon": "X"},
+    # 10. Neon Cyan + Magenta (AI Designed)
+    {"bg": (0,0,0), "left_bg": (0,20,30), "right_bg": (0,10,15), "accent1": (0,255,255), "accent2": (255,0,255), "label": "AI TECH", "icon": "AI"},
+    # 11. Koyu Mavi + Gümüş (Self Driving)
+    {"bg": (0,0,0), "left_bg": (0,10,40), "right_bg": (0,5,20), "accent1": (0,150,255), "accent2": (200,200,200), "label": "AUTONOMY", "icon": "FSD"},
+    # 12. Koyu Amber + Beyaz (Electric Trucks)
+    {"bg": (0,0,0), "left_bg": (40,25,0), "right_bg": (20,10,0), "accent1": (255,160,0), "accent2": (255,255,255), "label": "TRUCK", "icon": "[T]"},
+    # 13. Mavi Gradient + Sarı (EV Change Everything)
+    {"bg": (0,0,0), "left_bg": (0,30,80), "right_bg": (0,15,40), "accent1": (0,100,255), "accent2": (255,255,0), "label": "FUTURE", "icon": "2025"},
+    # 14. Koyu Kırmızı + Siyah (Regret)
+    {"bg": (0,0,0), "left_bg": (50,0,0), "right_bg": (25,0,0), "accent1": (255,0,0), "accent2": (200,200,200), "label": "TRUTH", "icon": "!!"},
+    # 15. Koyu Teal + Neon Yeşil (Home Charging)
+    {"bg": (0,0,0), "left_bg": (0,40,40), "right_bg": (0,20,20), "accent1": (0,255,150), "accent2": (255,255,255), "label": "HOME", "icon": "HOME"},
+    # 16. Koyu Turuncu + Kırmızı (Road Trip)
+    {"bg": (0,0,0), "left_bg": (50,20,0), "right_bg": (25,10,0), "accent1": (255,80,0), "accent2": (255,200,0), "label": "TRIP", "icon": "MAP"},
+    # 17. Koyu Mor + Pembe (Battery Tech 10x)
+    {"bg": (0,0,0), "left_bg": (30,0,50), "right_bg": (15,0,25), "accent1": (200,0,255), "accent2": (255,100,200), "label": "10X", "icon": "UP"},
+    # 18. Koyu Yeşil + Altın (EVs Cheaper)
+    {"bg": (0,0,0), "left_bg": (0,40,10), "right_bg": (0,20,5), "accent1": (0,200,50), "accent2": (255,215,0), "label": "DATA", "icon": "CHART"},
+    # 19. Bordo + Siyah (Toyota Secret)
+    {"bg": (0,0,0), "left_bg": (40,5,10), "right_bg": (20,2,5), "accent1": (200,20,40), "accent2": (255,255,255), "label": "LEAK", "icon": "TOP"},
+    # 20. Gece Laciverti + Buz Mavisi (Real Reason taking over)
+    {"bg": (0,0,0), "left_bg": (0,5,20), "right_bg": (0,2,10), "accent1": (50,150,255), "accent2": (0,255,200), "label": "REPORT", "icon": "DOC"},
+]
 
 LAYOUTS = ["split", "versus", "shock", "data",
            "neon", "minimal", "alert", "cinematic", "grid", "bold"]
@@ -903,15 +857,13 @@ class ThumbnailGenerator:
             return ""
 
         W, H = 1280, 720
-        topic_key = topic.lower().replace(" ", "_")
         
-        # Orijinal TOPIC_STYLES'i bozmamak için kopyalıyoruz
-        base_st = TOPIC_STYLES.get(topic_key, TOPIC_STYLES["default"])
+        # 20 PREMIUM stilden rastgele birini seçiyoruz (Tam Çeşitlilik)
+        base_st = random.choice(PREMIUM_PALETTES)
         st = {k: v for k, v in base_st.items()}
         
-        # Stats listesinden rastgele 3 tanesini seçelim (sınırsız çeşitlilik için)
-        if "stats" in st and st["stats"]:
-            st["stats"] = random.sample(st["stats"], min(3, len(st["stats"])))
+        # Sınırsız çeşitlilik için GLOBAL_STATS_POOL'dan 3 istatistik seçiyoruz
+        st["stats"] = random.sample(GLOBAL_STATS_POOL, min(3, len(GLOBAL_STATS_POOL)))
 
         # Sınırsız çeşitlilik için layout'u tamamen rastgele seçelim
         layout = random.choice(LAYOUTS)

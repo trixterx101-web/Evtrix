@@ -65,8 +65,8 @@ CHANNEL_ID                 = os.getenv("CHANNEL_ID", "")
 # ── Video Settings ────────────────────────────────────────────────────────────
 SHORT_VIDEO_DURATION_MIN = 25
 SHORT_VIDEO_DURATION_MAX = 50
-LONG_VIDEO_DURATION_MIN  = 180
-LONG_VIDEO_DURATION_MAX  = 240
+LONG_VIDEO_DURATION_MIN  = 240
+LONG_VIDEO_DURATION_MAX  = 360
 VIDEO_DURATION_MIN       = 25
 VIDEO_DURATION_MAX       = 50
 

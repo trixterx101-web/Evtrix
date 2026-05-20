@@ -20,8 +20,12 @@ class AutoEditor:
             duration = self._get_audio_duration(audio_path)
             logger.info(f"[Editor] Audio duration: {duration:.1f}s")
 
-            clip_dur = 6
-            needed   = max(1, int(duration / clip_dur) + 1)
+            clip_dur = 6.0
+            # Prevent clip duplication by dynamically extending clip_dur if we don't have enough clips
+            if len(clips_paths) > 0 and (duration / clip_dur) > len(clips_paths):
+                clip_dur = (duration / len(clips_paths)) + 0.1
+                
+            needed = max(1, int(duration / clip_dur) + 1)
             if len(clips_paths) < needed:
                 clips_paths = (clips_paths * (needed // len(clips_paths) + 1))[:needed]
 
@@ -30,7 +34,8 @@ class AutoEditor:
             inputs      = []
             scale_parts = []
             for i, clip in enumerate(clips_paths):
-                inputs += ["-i", os.path.abspath(clip)]
+                # Loop input infinitely so it can cover the dynamic clip_dur safely
+                inputs += ["-stream_loop", "-1", "-i", os.path.abspath(clip)]
                 scale_parts.append(
                     f"[{i}:v]trim=duration={clip_dur},setpts=PTS-STARTPTS,"
                     f"scale={W}:{H}:force_original_aspect_ratio=increase,"
