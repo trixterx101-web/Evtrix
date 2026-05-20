@@ -119,46 +119,33 @@ GLOBAL_STATS_POOL = [
 ]
 
 PREMIUM_PALETTES = [
-    # 1. Koyu Lacivert + Cyan (Tesla vs BYD tarzı)
-    {"bg": (0,0,0), "left_bg": (0,10,30), "right_bg": (0,5,15), "accent1": (0,212,255), "accent2": (255,255,255), "label": "EV DATA", "icon": "EV"},
-    # 2. Koyu Mor + Neon Cyan (Solid State)
-    {"bg": (0,0,0), "left_bg": (20,0,40), "right_bg": (10,0,20), "accent1": (139,0,255), "accent2": (0,255,136), "label": "BATTERY", "icon": "[B]"},
-    # 3. Koyu Teal + Altın (Cost Comparison)
-    {"bg": (0,0,0), "left_bg": (0,30,30), "right_bg": (0,15,15), "accent1": (0,255,200), "accent2": (255,204,0), "label": "FINANCE", "icon": "$$"},
-    # 4. Koyu Kırmızı + Beyaz (Battery Degradation)
-    {"bg": (0,0,0), "left_bg": (40,0,0), "right_bg": (20,0,0), "accent1": (255,34,0), "accent2": (255,255,255), "label": "WARNING", "icon": "!!"},
-    # 5. Altın Sarısı + Siyah (Free Charging)
-    {"bg": (0,0,0), "left_bg": (40,30,0), "right_bg": (20,15,0), "accent1": (255,204,0), "accent2": (255,255,255), "label": "HACK", "icon": ">>"},
-    # 6. Koyu Mavi + Turuncu (Tax Credits)
-    {"bg": (0,0,0), "left_bg": (0,20,50), "right_bg": (0,10,25), "accent1": (255,107,0), "accent2": (0,212,255), "label": "POLICY", "icon": "GOV"},
-    # 7. Turuncu Amber + Sarı (Fast Charging)
-    {"bg": (0,0,0), "left_bg": (40,20,0), "right_bg": (20,10,0), "accent1": (255,140,0), "accent2": (255,220,0), "label": "SPEED", "icon": "⚡"},
-    # 8. Buz Mavisi + Koyu Mavi (Winter Survival)
-    {"bg": (0,0,0), "left_bg": (0,40,60), "right_bg": (0,20,30), "accent1": (100,200,255), "accent2": (255,255,255), "label": "TEST", "icon": "❄️"},
-    # 9. Koyu Mor + Kırmızı (Hidden Costs)
-    {"bg": (0,0,0), "left_bg": (30,0,40), "right_bg": (15,0,20), "accent1": (255,0,100), "accent2": (150,0,255), "label": "SECRET", "icon": "X"},
-    # 10. Neon Cyan + Magenta (AI Designed)
-    {"bg": (0,0,0), "left_bg": (0,20,30), "right_bg": (0,10,15), "accent1": (0,255,255), "accent2": (255,0,255), "label": "AI TECH", "icon": "AI"},
-    # 11. Koyu Mavi + Gümüş (Self Driving)
-    {"bg": (0,0,0), "left_bg": (0,10,40), "right_bg": (0,5,20), "accent1": (0,150,255), "accent2": (200,200,200), "label": "AUTONOMY", "icon": "FSD"},
-    # 12. Koyu Amber + Beyaz (Electric Trucks)
-    {"bg": (0,0,0), "left_bg": (40,25,0), "right_bg": (20,10,0), "accent1": (255,160,0), "accent2": (255,255,255), "label": "TRUCK", "icon": "[T]"},
-    # 13. Mavi Gradient + Sarı (EV Change Everything)
-    {"bg": (0,0,0), "left_bg": (0,30,80), "right_bg": (0,15,40), "accent1": (0,100,255), "accent2": (255,255,0), "label": "FUTURE", "icon": "2025"},
-    # 14. Koyu Kırmızı + Siyah (Regret)
-    {"bg": (0,0,0), "left_bg": (50,0,0), "right_bg": (25,0,0), "accent1": (255,0,0), "accent2": (200,200,200), "label": "TRUTH", "icon": "!!"},
-    # 15. Koyu Teal + Neon Yeşil (Home Charging)
-    {"bg": (0,0,0), "left_bg": (0,40,40), "right_bg": (0,20,20), "accent1": (0,255,150), "accent2": (255,255,255), "label": "HOME", "icon": "HOME"},
-    # 16. Koyu Turuncu + Kırmızı (Road Trip)
-    {"bg": (0,0,0), "left_bg": (50,20,0), "right_bg": (25,10,0), "accent1": (255,80,0), "accent2": (255,200,0), "label": "TRIP", "icon": "MAP"},
-    # 17. Koyu Mor + Pembe (Battery Tech 10x)
-    {"bg": (0,0,0), "left_bg": (30,0,50), "right_bg": (15,0,25), "accent1": (200,0,255), "accent2": (255,100,200), "label": "10X", "icon": "UP"},
-    # 18. Koyu Yeşil + Altın (EVs Cheaper)
-    {"bg": (0,0,0), "left_bg": (0,40,10), "right_bg": (0,20,5), "accent1": (0,200,50), "accent2": (255,215,0), "label": "DATA", "icon": "CHART"},
-    # 19. Bordo + Siyah (Toyota Secret)
-    {"bg": (0,0,0), "left_bg": (40,5,10), "right_bg": (20,2,5), "accent1": (200,20,40), "accent2": (255,255,255), "label": "LEAK", "icon": "TOP"},
-    # 20. Gece Laciverti + Buz Mavisi (Real Reason taking over)
-    {"bg": (0,0,0), "left_bg": (0,5,20), "right_bg": (0,2,10), "accent1": (50,150,255), "accent2": (0,255,200), "label": "REPORT", "icon": "DOC"},
+    # --- Theme 1: Purple / AI / Shocking (Inspired by Image 1) ---
+    {"bg": (15,0,30), "left_bg": (25,0,45), "right_bg": (10,0,20), "accent1": (180,0,255), "accent2": (255,255,0), "label": "AI ANALYSIS", "icon": "AI"},
+    {"bg": (10,0,25), "left_bg": (20,0,40), "right_bg": (5,0,15), "accent1": (255,0,255), "accent2": (0,255,200), "label": "SHOCKING", "icon": "!!"},
+    {"bg": (20,0,20), "left_bg": (35,0,35), "right_bg": (10,0,10), "accent1": (255,100,200), "accent2": (255,255,255), "label": "PREDICTION", "icon": "PREDICT"},
+    {"bg": (15,0,40), "left_bg": (30,0,60), "right_bg": (10,0,20), "accent1": (130,50,255), "accent2": (0,255,100), "label": "DEEP DIVE", "icon": "DATA"},
+    {"bg": (25,0,15), "left_bg": (40,0,25), "right_bg": (15,0,5), "accent1": (255,0,128), "accent2": (255,200,0), "label": "WARNING", "icon": "ALERT"},
+
+    # --- Theme 2: Dark Blue / Tech / Data Breakdown (Inspired by Image 2) ---
+    {"bg": (0,5,25), "left_bg": (0,15,45), "right_bg": (0,5,15), "accent1": (0,212,255), "accent2": (255,204,0), "label": "REALITY?", "icon": "SCAM?"},
+    {"bg": (0,10,30), "left_bg": (0,20,50), "right_bg": (0,5,20), "accent1": (0,255,255), "accent2": (255,0,0), "label": "BREAKDOWN", "icon": "TECH"},
+    {"bg": (0,5,20), "left_bg": (0,15,35), "right_bg": (0,2,10), "accent1": (50,150,255), "accent2": (255,255,255), "label": "REAL DATA", "icon": "TEST"},
+    {"bg": (0,15,35), "left_bg": (0,30,60), "right_bg": (0,10,25), "accent1": (0,255,136), "accent2": (255,255,0), "label": "REVIEW", "icon": "EV"},
+    {"bg": (5,5,30), "left_bg": (10,10,50), "right_bg": (0,0,15), "accent1": (0,180,255), "accent2": (255,100,0), "label": "EXPOSED", "icon": "DOC"},
+
+    # --- Theme 3: Dark Teal / Finance / Battery Crash (Inspired by Image 3) ---
+    {"bg": (0,15,20), "left_bg": (0,30,40), "right_bg": (0,10,15), "accent1": (0,255,150), "accent2": (255,255,255), "label": "FINANCE", "icon": "$$"},
+    {"bg": (0,20,15), "left_bg": (0,40,30), "right_bg": (0,10,5), "accent1": (0,200,100), "accent2": (255,100,100), "label": "CRASH", "icon": "DOWN"},
+    {"bg": (0,25,25), "left_bg": (0,50,50), "right_bg": (0,15,15), "accent1": (50,255,200), "accent2": (200,200,200), "label": "COST", "icon": "PRICE"},
+    {"bg": (5,20,25), "left_bg": (10,40,50), "right_bg": (0,10,15), "accent1": (0,150,100), "accent2": (255,215,0), "label": "BATTERY", "icon": "10 YRS"},
+    {"bg": (0,10,10), "left_bg": (0,25,25), "right_bg": (0,5,5), "accent1": (0,255,100), "accent2": (255,50,50), "label": "MARKET", "icon": "TREND"},
+
+    # --- Theme 4: Dark Brown / Gold / Range Next-Gen (Inspired by Image 4) ---
+    {"bg": (15,10,0), "left_bg": (30,20,0), "right_bg": (10,5,0), "accent1": (255,215,0), "accent2": (255,255,255), "label": "NEXT-GEN", "icon": "RANGE"},
+    {"bg": (20,15,0), "left_bg": (40,30,0), "right_bg": (10,5,0), "accent1": (255,180,0), "accent2": (200,200,200), "label": "500 MILES", "icon": "⚡"},
+    {"bg": (25,10,0), "left_bg": (50,20,0), "right_bg": (15,5,0), "accent1": (255,140,0), "accent2": (255,255,255), "label": "UPGRADE", "icon": "SELL"},
+    {"bg": (10,10,10), "left_bg": (25,25,25), "right_bg": (5,5,5), "accent1": (255,200,0), "accent2": (100,150,255), "label": "RANGE", "icon": "MAX"},
+    {"bg": (15,5,0), "left_bg": (30,10,0), "right_bg": (5,0,0), "accent1": (255,100,0), "accent2": (255,220,0), "label": "IMMEDIATELY", "icon": "NOW"},
 ]
 
 LAYOUTS = ["split", "versus", "shock", "data",
