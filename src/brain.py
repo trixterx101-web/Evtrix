@@ -90,7 +90,7 @@ def _improve_title_with_gemini(topic: str, raw_title: str) -> str:
         if not keys:
             return raw_title
 
-        prompt = f"""You are a YouTube title expert for the channel "Evcarix" covering EV, AI, Battery, Robotics, Future Tech.
+        prompt = f"""You are a YouTube title expert for the channel "Evtrix" — the #1 EV data channel. Topics: EVs, AI, Battery Tech, Robotics, Future Technology.
 
 Topic: {topic}
 Current title: {raw_title}
@@ -100,15 +100,15 @@ Generate ONE viral YouTube title following these rules:
 2. Creates curiosity or shock
 3. Contains a specific number, fact, or question when possible
 4. No clickbait lies — must be relevant to topic
-5. English only
+5. English only. US/Europe/Global perspective.
 6. Use one of these proven formulas:
    - "Nobody Is Talking About [X] — But They Should Be"
-   - "I Tested [X] — The Results Are Shocking"
+   - "I Tested [X] for 30 Days — The Results Are Shocking"
    - "Why [X] Will Change Everything in 2026"
    - "The [X] Truth That Nobody Shows You"
-   - "[Number] [X] Facts That Will Blow Your Mind"
-   - "Warning: What [X] Really Does to Your [Y]"
-   - "[X] vs Reality: The 2026 Data"
+   - "[Number]% of EV Owners Don't Know This About [X]"
+   - "Warning: What [X] Really Costs in 2026"
+   - "[X] vs Reality: We Ran the Numbers"
 
 Return ONLY the title. No quotes. No explanation."""
 
@@ -173,7 +173,7 @@ def _validate_title(title: str) -> bool:
 
     # Zayıf başlık kalıpları
     weak_patterns = [
-        "ev tech:", "ev future:", "ev data:", "evcarix:",
+        "ev tech:", "ev future:", "ev data:", "evtrix:", "evcarix:",
         "short:", "video:", "daily:", "update:"
     ]
     title_lower = title.lower()
@@ -208,7 +208,7 @@ class EvcarixBrain:
 
     def select_strategic_topic(self, video_type="short"):
         content_mode = os.getenv("CONTENT_MODE", "auto").strip().lower()
-        print(f"[Brain] 📌 Content Mode: {content_mode}")
+        print(f"[Brain] Content Mode: {content_mode}")
 
         # ── 1. Trend Modu ─────────────────────────────────────────
         if content_mode == "trend" and video_type == "short":

@@ -78,11 +78,11 @@ class TrendEngine:
         ]
         self.ev_search_queries = [
             "electric car range test",
-            "EV battery technology 2025",
+            "EV battery technology 2026",
             "Tesla vs competition real world",
             "electric vehicle charging speed comparison",
             "EV battery degradation data",
-            "best electric cars 2025 real test",
+            "best electric cars 2026 real test",
             "solid state battery breakthrough",
             "electric car ownership cost analysis",
             "BYD electric car range test",
@@ -278,8 +278,8 @@ class TrendEngine:
         published_after_str = published_after.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         ev_short_queries = [
-            "electric car review shorts 2025",
-            "EV new model 2025 2026 shorts",
+            "electric car review shorts 2026",
+            "EV new model 2026 shorts",
             "electric vehicle launch shorts",
             "tesla new model shorts",
             "BYD electric car review shorts",
@@ -351,7 +351,7 @@ class TrendEngine:
         channel = video_data.get("channel", "")
 
         system = (
-            "You are the head writer for Evcarix, a data-driven EV YouTube Shorts channel. "
+            "You are the head writer for Evtrix, a data-driven EV YouTube channel. "
             "Style: analytical, fact-first, no hype. Motto: 'No hype. Just numbers.' "
             "Always return valid JSON only — no markdown, no extra text, no code blocks."
         )
@@ -360,14 +360,14 @@ class TrendEngine:
 Channel: {channel}
 Their description: "{description[:300]}"
 
-Write a COMPLETELY ORIGINAL Evcarix Short script inspired by this TOPIC only.
+Write a COMPLETELY ORIGINAL Evtrix script inspired by this TOPIC only.
 Rules:
 - Do NOT copy their words or structure
 - Data-driven angle: real stats, percentages, kWh numbers
-- Length: 35-45 seconds spoken (80-100 words)
-- Start with: "Welcome to EV-care-icks." then a shocking stat.
-- End with: "Subscribe to EV-care-icks for real EV data."
-- Channel Name: ALWAYS use "EV-care-icks" for pronunciation.
+- Length: 45-59 seconds spoken
+- Start with a shocking stat directly. Do NOT use greetings.
+- End with: "Subscribe to Evtrix for real EV data."
+- Channel Name: ALWAYS use "Evtrix" for pronunciation.
 - English only, USA/Europe/China examples only.
 
 Return ONLY this JSON (no markdown, no backticks):
@@ -411,8 +411,8 @@ Return ONLY this JSON (no markdown, no backticks):
             headers = {
                 "Authorization": f"Bearer {self.openrouter_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://evcarix.com",
-                "X-Title": "Evcarix Auto-Studio",
+                "HTTP-Referer": "https://evtrix.com",
+                "X-Title": "Evtrix Auto-Studio",
             }
             # Ücretsiz ve güçlü model
             data = {
@@ -760,7 +760,7 @@ Return ONLY this JSON (no markdown, no backticks):
 
         now = datetime.datetime.now()
         tags = script_data.get("tags", [])
-        for must in ["ev", "electriccar", "evcarix", "Shorts", "ElectricVehicle"]:
+        for must in ["ev", "electriccar", "Evtrix", "Shorts", "ElectricVehicle"]:
             if must not in tags:
                 tags.append(must)
 
@@ -777,14 +777,14 @@ Return ONLY this JSON (no markdown, no backticks):
             "voice":       random.choice(["male", "female"]),
             "description": (
                 f"{script_data['title']}\n\n"
-                f"Real EV data. No hype. Just numbers. — Evcarix\n\n"
+                f"Real EV data. No hype. Just numbers. — Evtrix\n\n"
                 f"What you'll learn:\n"
                 f"— {script_data.get('hook', script_data['topic'])}\n\n"
                 f"{chr(10).join('#' + t.replace(' ', '') for t in tags[:15])}"
             ),
             "tags":        tags,
             "variation": {
-                "cta_style":  "Subscribe to Evcarix for real EV data.",
+                "cta_style":  "Subscribe to Evtrix for real EV data.",
                 "hook_style": "trend",
                 "emoji_set":  ["⚡", "🔋", "📊"],
             },

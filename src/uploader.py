@@ -73,10 +73,10 @@ class YouTubeUploader:
             print(f"[Uploader] ❌ YouTube servisi oluşturulamadı: {e}", flush=True)
             return None
 
-    def upload_video(self, file_path, title, description, tags, category_id="2", max_retries=3,
+    def upload_video(self, file_path, title, description, tags, category_id="28", max_retries=3,
                   playlist_name: str = None, thumbnail_path: str = None):
         """Videoyu YouTube'a yükler.
-        Category 2 = Autos & Vehicles (EV içeriği için en uygun)
+        Category 28 = Science & Technology (EV + AI içeriği için en uygun)
         503/500 transient sunucu hatalarında exponential backoff ile retry yapar.
         """
         from googleapiclient.errors import ResumableUploadError
@@ -198,7 +198,7 @@ class YouTubeUploader:
                 body={
                     "snippet": {
                         "title": playlist_name,
-                        "description": f"Evcarix — {playlist_name}",
+                        "description": f"Evtrix — {playlist_name}",
                     },
                     "status": {"privacyStatus": "public"}
                 }

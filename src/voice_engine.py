@@ -23,7 +23,7 @@ class VoiceEngine:
     async def _generate_edge(self, text: str, output_path: str, voice_type: str = "female"):
         import edge_tts
         
-        voice = "en-US-AndrewNeural" if voice_type == "male" else "en-US-AvaNeural"
+        voice = "en-US-BrianNeural" if voice_type == "male" else "en-US-JennyNeural"
         communicate = edge_tts.Communicate(text, voice)
         
         word_timings = []
