@@ -2,9 +2,8 @@ name: Evcarix Ultra-HD Pipeline v2
 
 on:
   schedule:
-    - cron: '0 7 * * *'    # TR 10:00 — Trend Mode (Short)
-    - cron: '0 14 * * *'   # TR 17:00 — Auto Mode  (Short)
-    - cron: '0 5 * * 0'    # Pazar TR 08:00 — Long Video
+    - cron: '0 6 * * *'    # TR 09:00 — Her gün Short Video (Trend)
+    - cron: '0 12 * * *'   # TR 15:00 — Her gün Long Video  (Auto)
   workflow_dispatch:
     inputs:
       video_type:
@@ -143,10 +142,12 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
             echo "VIDEO_TYPE=${{ github.event.inputs.video_type }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.schedule }}" == "0 7 * * *" ]; then
+          elif [ "${{ github.event.schedule }}" == "0 6 * * *" ]; then
+            # TR 09:00 — Kısa Video (Trend)
             echo "CONTENT_MODE=trend" >> $GITHUB_ENV
             echo "VIDEO_TYPE=short" >> $GITHUB_ENV
-          elif [ "${{ github.event.schedule }}" == "0 5 * * 0" ]; then
+          elif [ "${{ github.event.schedule }}" == "0 12 * * *" ]; then
+            # TR 15:00 — Uzun Video (Auto)
             echo "CONTENT_MODE=auto" >> $GITHUB_ENV
             echo "VIDEO_TYPE=long" >> $GITHUB_ENV
           else
