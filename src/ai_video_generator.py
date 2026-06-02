@@ -75,7 +75,6 @@ class AIVideoGenerator:
     def __init__(self):
         self.gemini_key = os.getenv("GEMINI_API_KEY")
         self.muapi_key  = os.getenv("MUAPI_KEY")
-        self.fal_key    = os.getenv("FAL_KEY")
         self.kling_key  = os.getenv("KLING_API_KEY")
         self.luma_key   = os.getenv("LUMA_API_KEY")
         self.hf_token   = os.getenv("HF_TOKEN")
@@ -90,7 +89,6 @@ class AIVideoGenerator:
             methods = [
                 ("Veo", self._google_veo),
                 ("Muapi", self._muapi),
-                ("FalAI", self._fal_ai),
                 ("Kling", self._kling),
                 ("Luma", self._luma),
                 ("HF", self._huggingface)
@@ -161,15 +159,6 @@ class AIVideoGenerator:
                 time.sleep(10)
         return None
 
-    def _fal_ai(self, prompt, idx):
-        if not self.fal_key: return None
-        import fal_client
-        h = fal_client.submit("fal-ai/kling-video/v1.6/standard/text-to-video", arguments={"prompt": prompt, "aspect_ratio": "9:16"})
-        for _ in range(30):
-            s = fal_client.status("fal-ai/kling-video/v1.6/standard/text-to-video", h.request_id)
-            if s.status == "COMPLETED": return self._download(s.response["video"]["url"], f"fal_{idx}.mp4")
-            time.sleep(10)
-        return None
 
     def _ffmpeg_animated(self, prompt: str, idx: int) -> str | None:
         """

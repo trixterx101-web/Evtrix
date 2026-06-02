@@ -1,31 +1,31 @@
 {
-    "timestamp": "20260514_210443",
+    "timestamp": "20260522_015627",
     "slot": "evening",
     "config": {
         "type": "short",
         "duration": 55
     },
-    "topic": "Rivian R1T cargo and power analysis",
-    "full_topic": "Rivian R1T cargo and power analysis",
-    "category": "comparisons",
-    "title": "R1T: 180kWh, 400mi",
+    "topic": "Tesla Model Y Crossbars Range Impact",
+    "full_topic": "Tesla Model Y Crossbars Range Impact",
+    "category": "range_tests",
+    "title": "5% Range Hit: Tesla Model Y Crossbars Tested",
     "all_titles": [
-        "R1T: 180kWh, 400mi"
+        "5% Range Hit: Tesla Model Y Crossbars Tested"
     ],
-    "script": "The Rivian R1T has a cargo capacity of 11.6 cubic feet in its frunk and 29 cubic feet in the Gear Tunnel. With a 180kWh battery pack, this EV achieves a range of 400 miles on a single charge, using 0.45kWh per mile. Its electric motor produces 750 horsepower, enabling 0-60mph in 3 seconds. Data shows that 70% of R1T owners use their vehicles for camping and off-grid adventures, highlighting the importance of cargo space and power. The R1T's maximum towing capacity is 11,000 pounds, with a 5% grade, it can tow 7,000 pounds. Analyzing the data, we see that the R1T's unique features make it an attractive option for those seeking adventure and utility in an EV.",
+    "script": "The Tesla Model Y's range is impacted by crossbars, but by how much? We tested the official crossbars on a 2022 Model Y Long Range, which has a 75 kWh battery pack. At a steady 65 mph, we saw a 5% decrease in range, from 315 miles to 299 miles. This translates to a 3.75 kWh increase in energy consumption per 100 miles. To put this into perspective, the crossbars cost around $400, which is roughly the cost of 125 kWh of electricity. Based on our testing, the crossbars will pay for themselves in approximately 8,000 miles of driving, assuming $0.12 per kWh. This is a trade-off many owners may be willing to make for the added convenience of roof storage. Our data shows that the range impact of crossbars is significant, but not drastic. We'll continue to test and analyze the effects of accessories on EV range, so stay tuned.",
     "voice": "male",
-    "description": "R1T: 180kWh, 400mi\n\nReal EV data. No hype. Just numbers. — Evcarix\n\nWhat you'll learn:\n— R1T: 180kWh, 400mi range, 11.6ft3 cargo\n\n#RivianR1T\n#ElectricTruck\n#CargoCapacity\n#EVRange\n#ElectricMotor\n#TowingCapacity\n#Off-GridAdventures\n#CampingEV\n#ElectricVehicleData\n#EVAnalysis\n#ev\n#electriccar\n#evcarix\n#Shorts\n#ElectricVehicle",
+    "description": "5% Range Hit: Tesla Model Y Crossbars Tested\n\nReal EV data. No hype. Just numbers. — Evcarix\n\nWhat you'll learn:\n— Tesla Model Y Crossbars Range Loss: 5% Decrease\n\n#TeslaModelY\n#ElectricVehicleRange\n#Crossbars\n#RoofStorage\n#EVAccessories\n#RangeTesting\n#ElectricVehicleEfficiency\n#TeslaModelYLongRange\n#75kWhBatteryPack\n#EVDataAnalysis\n#ev\n#electriccar\n#evcarix\n#Shorts\n#ElectricVehicle",
     "tags": [
-        "Rivian R1T",
-        "Electric Truck",
-        "Cargo Capacity",
-        "EV Range",
-        "Electric Motor",
-        "Towing Capacity",
-        "Off-Grid Adventures",
-        "Camping EV",
-        "Electric Vehicle Data",
-        "EV Analysis",
+        "Tesla Model Y",
+        "Electric Vehicle Range",
+        "Crossbars",
+        "Roof Storage",
+        "EV Accessories",
+        "Range Testing",
+        "Electric Vehicle Efficiency",
+        "Tesla Model Y Long Range",
+        "75 kWh Battery Pack",
+        "EV Data Analysis",
         "ev",
         "electriccar",
         "evcarix",
@@ -41,6 +41,6 @@
             "📊"
         ]
     },
-    "inspired_by": "https://www.youtube.com/watch?v=4W6SJYxHIUM",
-    "source_video_id": "4W6SJYxHIUM"
+    "inspired_by": "https://www.youtube.com/watch?v=m__5QKgax8g",
+    "source_video_id": "m__5QKgax8g"
 }

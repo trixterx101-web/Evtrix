@@ -59,7 +59,6 @@ class AIVideoGenerator:
     def __init__(self):
         self.pexels_key  = os.getenv("PEXELS_API_KEY")
         self.pixabay_key = os.getenv("PIXABAY_API_KEY")
-        self.fal_key     = os.getenv("FAL_KEY")
         self.muapi_key   = os.getenv("MUAPI_KEY")
 
     def generate_clips(self, prompts: list) -> list:

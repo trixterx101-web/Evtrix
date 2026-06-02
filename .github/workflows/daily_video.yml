@@ -2,7 +2,6 @@ name: Evcarix Ultra-HD Pipeline v2
 
 on:
   schedule:
-    - cron: '0 6 * * *'    # TR 09:00 — Her gün Short Video (Trend)
     - cron: '0 12 * * *'   # TR 15:00 — Her gün Long Video  (Auto)
   workflow_dispatch:
     inputs:
@@ -142,17 +141,13 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
             echo "VIDEO_TYPE=${{ github.event.inputs.video_type }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.schedule }}" == "0 6 * * *" ]; then
-            # TR 09:00 — Kısa Video (Trend)
-            echo "CONTENT_MODE=trend" >> $GITHUB_ENV
-            echo "VIDEO_TYPE=short" >> $GITHUB_ENV
           elif [ "${{ github.event.schedule }}" == "0 12 * * *" ]; then
             # TR 15:00 — Uzun Video (Auto)
             echo "CONTENT_MODE=auto" >> $GITHUB_ENV
             echo "VIDEO_TYPE=long" >> $GITHUB_ENV
           else
             echo "CONTENT_MODE=auto" >> $GITHUB_ENV
-            echo "VIDEO_TYPE=short" >> $GITHUB_ENV
+            echo "VIDEO_TYPE=long" >> $GITHUB_ENV
           fi
           echo "✅ Content Mode: $CONTENT_MODE"
           echo "✅ Video Type: $VIDEO_TYPE"
@@ -187,7 +182,6 @@ jobs:
           MUAPI_KEY: ${{ secrets.MUAPI_KEY }}
           VIDEOGEN_API_KEY: ${{ secrets.VIDEOGEN_API_KEY }}
           ZSKY_API_KEY: ${{ secrets.ZSKY_API_KEY }}
-          FAL_KEY: ${{ secrets.FAL_KEY }}
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
           KLING_API_KEY: ${{ secrets.KLING_API_KEY }}
           LUMA_API_KEY: ${{ secrets.LUMA_API_KEY }}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvTrix — YouTube Optimizasyon Paneli</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f0f0f;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 {
+    color: #00ff88;
+    font-size: 24px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .subtitle {
+    text-align: center;
+    color: #aaa;
+    margin-bottom: 30px;
+    font-size: 14px;
+  }
+  .card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    color: #00ff88;
+    font-size: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary {
+    background: #00ff88;
+    color: #000;
+  }
+  .btn-primary:hover { background: #00cc6a; transform: scale(1.03); }
+  .btn-secondary {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+  }
+  .btn-secondary:hover { background: #333; }
+  .btn-copy {
+    background: #ff4444;
+    color: #fff;
+  }
+  .btn-copy:hover { background: #cc3333; }
+  textarea {
+    width: 100%;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+    padding: 12px;
+    font-size: 13px;
+    font-family: monospace;
+    resize: vertical;
+    margin-top: 8px;
+  }
+  .step {
+    background: #00ff8820;
+    border-left: 3px solid #00ff88;
+    padding: 8px 12px;
+    margin: 6px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+  }
+  .badge {
+    background: #00ff88;
+    color: #000;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .title-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .title-table th { background: #222; padding: 8px; text-align: left; font-size: 12px; color: #aaa; }
+  .title-table td { padding: 8px; border-bottom: 1px solid #222; font-size: 12px; }
+  .title-table td:first-child { color: #ff6666; }
+  .title-table td:last-child { color: #00ff88; }
+  .status { text-align: center; padding: 10px; background: #111; border-radius: 8px; margin-top: 8px; font-size: 13px; color: #00ff88; }
+</style>
+</head>
+<body>
+
+<h1>⚡ EvTrix YouTube Optimizasyon Paneli</h1>
+<p class="subtitle">Aşağıdaki adımları sırayla uygula — hepsi kopyala-yapıştır ile çalışır</p>
+
+<!-- GÖREV 1 -->
+<div class="card">
+  <h2><span class="badge">1</span> Kanal Açıklaması</h2>
+  <p>YouTube Studio'da Özelleştir > Temel Bilgiler > Açıklama alanına yapıştır</p>
+  <div class="btn-row">
+    <a href="https://www.youtube.com/account_customization" target="_blank" class="btn btn-primary">🔗 Sayfayı Aç</a>
+    <button class="btn btn-copy" onclick="copyText('desc1')">📋 Açıklamayı Kopyala</button>
+  </div>
+  <textarea id="desc1" rows="12">EvTrix is your #1 source for electric vehicle reviews, EV range tests, battery technology breakdowns, and the future of AI-powered transportation.
+
+We test EVs so you don't have to — real data, real range, real results.
+AI + Robotics + Electric Vehicles = The future we cover every week.
+From Tesla to BYD, Rivian to Lucid — no brand bias, only truth.
+
+What you'll find here:
+✔ EV Range Tests (real-world, not EPA estimates)
+✔ Battery Technology Explained (simply)
+✔ AI in Transportation — what's actually happening
+✔ EV comparisons, charging costs, and hidden truths
+✔ Autonomous vehicles and robotics updates
+
+Business: evtrix.contact@gmail.com
+
+Subscribe and hit the bell — we post every week.
+
+#ElectricVehicles #EVReview #BatteryTechnology #AITech #FutureOfTransport</textarea>
+  <div id="status1" class="status" style="display:none">✅ Kopyalandı! Yapıştır ve YAYINLA'ya tıkla</div>
+</div>
+
+<!-- GÖREV 2 -->
+<div class="card">
+  <h2><span class="badge">2</span> Yükleme Varsayılanları</h2>
+  <p>YouTube Studio > Ayarlar (⚙️) > Yükleme Varsayılanları > Açıklama</p>
+  <div class="btn-row">
+    <a href="https://studio.youtube.com/channel/UCqESu_JRhmaUIvROLu0kGEQ/settings" target="_blank" class="btn btn-primary">🔗 Ayarları Aç</a>
+    <button class="btn btn-copy" onclick="copyText('desc2')">📋 Şablonu Kopyala</button>
+  </div>
+  <textarea id="desc2" rows="10">[Video özeti buraya]
+
+CHAPTERS:
+0:00 — Intro
+
+MORE FROM EVTRIX:
+Subscribe: https://youtube.com/@EvTrix
+
+Real EV data, every week. Subscribe and hit the bell!
+
+#ElectricVehicles #EVReview #EVTech #BatteryTechnology #AITech #Tesla #BYD #Rivian #LucidMotors #ElectricCars #EVRange #FutureOfTransport #SelfDriving #AutonomousVehicles #CleanEnergy #EVCharging #ElectricFuture #EVTrends #SmartTransportation #Robotics</textarea>
+  <div id="status2" class="status" style="display:none">✅ Kopyalandı! Yapıştır ve KAYDET'e tıkla</div>
+</div>
+
+<!-- GÖREV 3 -->
+<div class="card">
+  <h2><span class="badge">3</span> Video Başlıkları</h2>
+  <p>Her videoyu tıkla > Düzenle > Başlığı değiştir > Tags ekle > KAYDET</p>
+  <div class="btn-row">
+    <a href="https://studio.youtube.com/channel/UCqESu_JRhmaUIvROLu0kGEQ/videos" target="_blank" class="btn btn-primary">🔗 Videoları Aç</a>
+    <button class="btn btn-copy" onclick="copyText('tagsField')">📋 Tagları Kopyala</button>
+  </div>
+  <table class="title-table">
+    <tr><th>ESKİ BAŞLIK</th><th>YENİ BAŞLIK</th></tr>
+    <tr><td>AMR Revolution / 500 Miles...</td><td>AMR Robots Just Changed EVs Forever — 500 Miles Is Only the Beginning</td></tr>
+    <tr><td>EV Future Is Not What...</td><td>AI Analyzed 34M EV Data Points — The Results Will Shock You</td></tr>
+    <tr><td>EV Tech Nobody Is Talking...</td><td>This EV Technology Will Be Everywhere in 2 Years (Nobody Is Warning You)</td></tr>
+    <tr><td>EV Robots Are About to Replace...</td><td>EV Robots Will Replace Human Drivers by 2026 — Here's the Proof</td></tr>
+    <tr><td>I Let AI Predict My EV Range...</td><td>I Let AI Predict My EV Range for 30 Days — It Was Wrong Once</td></tr>
+    <tr><td>Is Wireless EV Charging a SCAM...</td><td>We Tested Wireless EV Charging — $3,000 and 85% Efficiency (Worth It?)</td></tr>
+  </table>
+  <textarea id="tagsField" rows="3" style="margin-top:12px">electric vehicles, EV review, electric cars, EV range test, battery technology, AI technology, EV tech, Tesla, BYD, Rivian, Lucid Motors, electric car range, EV battery life, fast charging EV, EV charging cost, electric mobility, autonomous vehicles, electric future, EV trends, Evtrix</textarea>
+  <div id="statusTags" class="status" style="display:none">✅ Taglar kopyalandı! Her videoya ekle</div>
+</div>
+
+<!-- GÖREV 4 -->
+<div class="card">
+  <h2><span class="badge">4</span> Playlist Oluştur (6 Adet)</h2>
+  <p>Oynatma Listeleri > Yeni oynatma listesi > Başlık yaz > Oluştur</p>
+  <div class="btn-row">
+    <a href="https://studio.youtube.com/channel/UCqESu_JRhmaUIvROLu0kGEQ/playlists" target="_blank" class="btn btn-primary">🔗 Playlist Sayfası</a>
+  </div>
+  <div style="margin-top:12px">
+    <div class="step">📁 <strong>EV Range Tests — Real World Data</strong></div>
+    <div class="step">📁 <strong>Battery Technology Explained</strong></div>
+    <div class="step">📁 <strong>AI and Robotics in EVs</strong></div>
+    <div class="step">📁 <strong>EV Tech You Dont Know About</strong></div>
+    <div class="step">📁 <strong>EV Cost and Value Breakdowns</strong></div>
+    <div class="step">📁 <strong>EvTrix Best Of — Start Here</strong></div>
+  </div>
+</div>
+
+<!-- GÖREV 5 -->
+<div class="card">
+  <h2><span class="badge">5</span> Kanal Sayfası Düzeni</h2>
+  <p>Özelleştir > Sayfa Düzeni > Bölüm Ekle ile sırayı ayarla</p>
+  <div class="btn-row">
+    <a href="https://www.youtube.com/account_customization" target="_blank" class="btn btn-primary">🔗 Özelleştir Sayfası</a>
+  </div>
+  <div style="margin-top:12px">
+    <div class="step">1️⃣ EvTrix Best Of (Playlist)</div>
+    <div class="step">2️⃣ EV Range Tests (Playlist)</div>
+    <div class="step">3️⃣ AI and Robotics (Playlist)</div>
+    <div class="step">4️⃣ Battery Technology (Playlist)</div>
+    <div class="step">5️⃣ Son Yüklenenler</div>
+  </div>
+</div>
+
+<script>
+function copyText(id) {
+  var el = document.getElementById(id);
+  el.select();
+  document.execCommand('copy');
+  var statusId = id === 'tagsField' ? 'statusTags' : 'status' + id.replace('desc','');
+  var status = document.getElementById(statusId);
+  if (status) {
+    status.style.display = 'block';
+    setTimeout(function() { status.style.display = 'none'; }, 3000);
+  }
+}
+</script>
+
+</body>
+</html>

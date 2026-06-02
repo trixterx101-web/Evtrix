@@ -55,7 +55,6 @@ PEXELS_API_KEY    = os.getenv("PEXELS_API_KEY", "")
 PIXABAY_API_KEY   = os.getenv("PIXABAY_API_KEY", "")
 KLING_ACCESS_KEY  = os.getenv("KLING_ACCESS_KEY", "")
 KLING_SECRET_KEY  = os.getenv("KLING_SECRET_KEY", "")
-FAL_KEY           = os.getenv("FAL_KEY", "")
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
 YOUTUBE_CLIENT_SECRET_PATH = os.getenv("YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json")
