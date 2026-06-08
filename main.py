@@ -153,7 +153,24 @@ class EvcarixOrchestrator:
             
             if lip_sync_result:
                 final_video_path = lip_sync_result["video"]
-                thumbnail_path   = lip_sync_result["thumbnail"]
+                thumbnail_path   = lip_sync_result.get("thumbnail")
+                
+                # ── Thumbnail fallback: lip-sync thumbnail yoksa ThumbnailGenerator üret ──
+                if not thumbnail_path or not os.path.exists(thumbnail_path):
+                    print("      ⚠️ Lip-sync thumbnail bulunamadı, ThumbnailGenerator devreye giriyor...", flush=True)
+                    try:
+                        from src.thumbnail_generator import ThumbnailGenerator
+                        thumb_gen = ThumbnailGenerator()
+                        thumb_result = thumb_gen.create(title=title, topic=topic_key if 'topic_key' in dir() else "electric_vehicle")
+                        if thumb_result and os.path.exists(thumb_result):
+                            thumbnail_path = thumb_result
+                            print(f"      ✅ Fallback thumbnail hazır: {thumbnail_path}", flush=True)
+                        else:
+                            thumbnail_path = None
+                            print("      ⚠️ Thumbnail üretilemedi, video thumbnail'siz yüklenecek.", flush=True)
+                    except Exception as te:
+                        thumbnail_path = None
+                        print(f"      ⚠️ Thumbnail hatası: {te}", flush=True)
                 
                 if self.uploader and self.uploader.youtube and os.path.exists(final_video_path):
                     print("\n[6/6] YouTube'a yükleniyor...", flush=True)
@@ -164,13 +181,11 @@ class EvcarixOrchestrator:
                             description=description,
                             tags=tags,
                             playlist_name="Short Video",
-                            thumbnail_path=thumbnail_path if os.path.exists(thumbnail_path) else None,
+                            thumbnail_path=thumbnail_path,
                             topic=topic
                         )
                         print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                         print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)
-
-                        pass
 
                     except Exception as e:
                         print(f"      ❌ YouTube yükleme hatası: {e}")
