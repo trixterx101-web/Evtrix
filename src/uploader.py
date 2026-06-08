@@ -74,7 +74,7 @@ class YouTubeUploader:
             return None
 
     def upload_video(self, file_path, title, description, tags, category_id="28", max_retries=3,
-                  playlist_name: str = None, thumbnail_path: str = None):
+                  playlist_name: str = None, thumbnail_path: str = None, topic: str = ""):
         """Videoyu YouTube'a yükler.
         Category 28 = Science & Technology (EV + AI içeriği için en uygun)
         503/500 transient sunucu hatalarında exponential backoff ile retry yapar.
@@ -164,8 +164,10 @@ class YouTubeUploader:
                 
                 # Upload thumbnail if specified
                 if thumbnail_path and video_id and os.path.exists(thumbnail_path):
-                    # Use set_thumbnail for reliable retries (important for long videos)
                     self.set_thumbnail(video_id, thumbnail_path)
+
+                # Post first comment for engagement signal
+                self.post_first_comment(video_id, topic=topic)
                 
                 return video_id
             except (HttpError, ResumableUploadError) as e:
@@ -209,6 +211,41 @@ class YouTubeUploader:
         except Exception as e:
             print(f"[Uploader] ⚠️ Playlist bulunamadı/oluşturulamadı: {e}")
             return None
+
+    def post_first_comment(self, video_id: str, topic: str = "") -> bool:
+        """Upload sonrasi videonun altina ilk yorum yap. Engagement sinyali uretir."""
+        import random
+        import time
+        clean_topic = topic.replace("_", " ").title() if topic else "this EV topic"
+        COMMENTS = [
+            f"Which stat surprised you most about {clean_topic}? Drop it below! We read every comment!",
+            f"What's YOUR take on {clean_topic}? Let us know in the comments below!",
+            f"We ran the real numbers on {clean_topic}. What do YOU think? Comment below!",
+            f"EV owners: have you experienced this with {clean_topic}? Share your story!",
+            f"How does {clean_topic} affect YOUR EV decision? Tell us below!",
+            f"What aspect of {clean_topic} should we cover next? Drop a suggestion!",
+            f"USA, Europe or China -- where do you think {clean_topic} is heading? Comment!",
+            f"Agree or disagree with this {clean_topic} data? Let us know why below!",
+        ]
+        comment_text = random.choice(COMMENTS)
+        try:
+            time.sleep(10)
+            self.youtube.commentThreads().insert(
+                part="snippet",
+                body={
+                    "snippet": {
+                        "videoId": video_id,
+                        "topLevelComment": {
+                            "snippet": {"textOriginal": comment_text}
+                        }
+                    }
+                }
+            ).execute()
+            print(f"[Uploader] First comment posted: {comment_text[:60]}...")
+            return True
+        except Exception as e:
+            print(f"[Uploader] Comment skipped (non-fatal): {e}")
+            return False
 
     def set_thumbnail(self, video_id, thumbnail_path, max_retries=4):
         """Video için kapak görselini yükler — YouTube processing süresi için exponential backoff retry."""

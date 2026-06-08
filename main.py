@@ -164,7 +164,8 @@ class EvcarixOrchestrator:
                             description=description,
                             tags=tags,
                             playlist_name="Short Video",
-                            thumbnail_path=thumbnail_path if os.path.exists(thumbnail_path) else None
+                            thumbnail_path=thumbnail_path if os.path.exists(thumbnail_path) else None,
+                            topic=topic
                         )
                         print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                         print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)
@@ -281,7 +282,8 @@ class EvcarixOrchestrator:
                     description=description,
                     tags=tags,
                     playlist_name="Short Video",
-                    thumbnail_path=thumbnail_path
+                    thumbnail_path=thumbnail_path,
+                    topic=topic
                 )
                 print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                 print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)
@@ -412,7 +414,8 @@ class EvcarixOrchestrator:
                     description=description,
                     tags=tags,
                     playlist_name="EV Data Reports",
-                    thumbnail_path=thumbnail_path
+                    thumbnail_path=thumbnail_path,
+                    topic=topic
                 )
                 print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                 print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)

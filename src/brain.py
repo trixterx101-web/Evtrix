@@ -273,9 +273,33 @@ class EvcarixBrain:
                 print(f"[Brain] 🔄 Liste sonu ({len(df)}), başa dönülüyor.")
                 idx = 0
 
-            selected = df.iloc[idx]
-            topic    = selected['topic']
-            category = selected.get('category_id', 'general')
+            # ── EV-Only Niş Filtresi ──────────────────────────────
+            EV_KEYWORDS = {
+                "ev", "electric", "battery", "charge", "charging", "range",
+                "motor", "vehicle", "car", "tesla", "byd", "rivian",
+                "kwh", "volt", "solar", "grid", "v2g", "lfp", "nmc",
+                "autonomous", "self-driving", "fsd", "drivetrain",
+                "lithium", "sodium", "solid-state", "degradation",
+                "efficiency", "consumption", "aerodynamic", "drag",
+                "infrastructure", "supercharger", "ccs", "chademo",
+                "heat pump", "thermal", "cooling", "warranty",
+                "maintenance", "depreciation", "cost", "price",
+                "market", "sales", "adoption", "gigafactory",
+            }
+            max_skip = min(10, len(df))
+            skipped = 0
+            topic = "Future of Electric Vehicles"
+            category = "general"
+            while skipped < max_skip:
+                row = df.iloc[idx % len(df)]
+                candidate = row['topic']
+                if any(kw in candidate.lower() for kw in EV_KEYWORDS):
+                    topic = candidate
+                    category = row.get('category_id', 'general')
+                    break
+                print(f"[Brain] ⏭️ Niş-dışı konu atlandı: {candidate}")
+                idx += 1
+                skipped += 1
 
             state["next_index"] = idx + 1
             with open(state_file, "w") as f:
