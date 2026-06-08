@@ -4,20 +4,18 @@ src/utils/thumbnail_burn.py
 Thumbnail görselini videonun ilk karesine gömer (Shorts uyumlu).
 
 16:9 thumbnail'i 9:16 Shorts formatına dönüştürür:
-- Thumbnail'i canvas ortasına yerleştirir
-- Üstüne/altına marka gradient ekler
-- Sessiz ses track'ı ile concat yapar (ses kaybını önler)
+- Thumbnail'i canvas ortasına yerleştirir, arka plana ise aynı resmin BÜYÜTÜLMÜŞ ve BULANIKLAŞTIRILMIŞ halini koyar (glassmorphism/TikTok stili).
+- Sessiz ses track'ı kanal formatıyla eşleştirilerek (mono/stereo) concat yapılır, böylece orijinal ses kaybolmaz.
 """
 
 import os
 import subprocess
 import shutil
 
-
 def burn_thumbnail_into_video(video_path: str, thumbnail_path: str, duration: float = 0.5) -> str:
     """
     Thumbnail'i videonun başına freeze-frame olarak ekler.
-    16:9 thumbnail → 9:16 Shorts uyumlu dönüşüm.
+    16:9 thumbnail → 9:16 Shorts uyumlu dönüşüm (Bulanık arka plan ile).
     """
     if not video_path or not os.path.exists(video_path):
         print(f"[ThumbnailBurn] Video bulunamadı: {video_path}")
@@ -53,40 +51,40 @@ def burn_thumbnail_into_video(video_path: str, thumbnail_path: str, duration: fl
         except:
             fps = 30
 
-        # Ses stream var mı
+        # Ses stream var mı ve detayları (mono/stereo)
         audio_probe = [
             "ffprobe", "-v", "error",
             "-select_streams", "a:0",
-            "-show_entries", "stream=codec_name,sample_rate",
+            "-show_entries", "stream=sample_rate,channels",
             "-of", "csv=p=0",
             video_path
         ]
         audio_result = subprocess.run(audio_probe, capture_output=True, text=True, timeout=10)
         has_audio = bool(audio_result.stdout.strip())
         audio_parts = audio_result.stdout.strip().split(",") if has_audio else []
-        sample_rate = audio_parts[1] if len(audio_parts) > 1 else "44100"
+        sample_rate = audio_parts[0] if len(audio_parts) > 0 else "44100"
+        channels = audio_parts[1].strip() if len(audio_parts) > 1 else "2"
+        channel_layout = "mono" if channels == "1" else "stereo"
 
         is_portrait = height > width  # Shorts = 9:16 portrait
 
-        print(f"[ThumbnailBurn] Video: {width}x{height}, {fps}fps, portrait={is_portrait}, ses={'var' if has_audio else 'yok'}")
+        print(f"[ThumbnailBurn] Video: {width}x{height}, {fps}fps, portrait={is_portrait}, ses={'var' if has_audio else 'yok'} ({channel_layout})")
 
         base_dir = os.path.dirname(video_path) or "."
         thumb_video = os.path.join(base_dir, "_thumb_intro.mp4")
         output_path = os.path.join(base_dir, "_with_thumb_" + os.path.basename(video_path))
 
-        # ── 2. Video filtresi oluştur ────────────────────────────
+        # ── 2. Video filtresi oluştur (Bulanık Arka Plan) ────────
         if is_portrait:
-            # 16:9 thumbnail → 9:16 canvas:
-            # Thumbnail'i genişliğe sığdır, ortala, üst/alt gradient
-            # pad ile siyah/koyu arka plan, overlay ile thumbnail ortada
+            # Arka plan: Thumbnail'i yüksekliğe sığdır, genişliği crop et, blur ekle
+            # Ön plan: Thumbnail'i genişliğe sığdır, ortala
             vf_filter = (
-                f"scale={width}:-2,"                                    # Genişliğe sığdır
-                f"pad={width}:{height}:0:(oh-ih)/2:color=0x0A0A14,"   # Dikey ortala, koyu arka plan
-                f"drawbox=x=0:y=0:w={width}:h=(ih-{width}*9/16)/2:color=0x0A0A14@1:t=fill,"  # Üst padding
-                f"setsar=1"
+                f"split=2[bg][fg];"
+                f"[bg]scale={height}*16/9:{height},crop={width}:{height},boxblur=20:5[bg_blurred];"
+                f"[fg]scale={width}:-1[fg_scaled];"
+                f"[bg_blurred][fg_scaled]overlay=0:(H-h)/2,setsar=1"
             )
         else:
-            # 16:9 video — thumbnail zaten uyumlu
             vf_filter = (
                 f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
                 f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:color=0x0A0A14,"
@@ -100,9 +98,9 @@ def burn_thumbnail_into_video(video_path: str, thumbnail_path: str, duration: fl
                 "-loop", "1",
                 "-i", thumbnail_path,
                 "-f", "lavfi",
-                "-i", f"anullsrc=r={sample_rate}:cl=stereo",
+                "-i", f"anullsrc=r={sample_rate}:cl={channel_layout}",
                 "-t", str(duration),
-                "-vf", vf_filter,
+                "-filter_complex", vf_filter,
                 "-c:v", "libx264",
                 "-preset", "fast",
                 "-pix_fmt", "yuv420p",
@@ -118,7 +116,7 @@ def burn_thumbnail_into_video(video_path: str, thumbnail_path: str, duration: fl
                 "-loop", "1",
                 "-i", thumbnail_path,
                 "-t", str(duration),
-                "-vf", vf_filter,
+                "-filter_complex", vf_filter,
                 "-c:v", "libx264",
                 "-preset", "fast",
                 "-pix_fmt", "yuv420p",
@@ -133,12 +131,15 @@ def burn_thumbnail_into_video(video_path: str, thumbnail_path: str, duration: fl
 
         # ── 4. filter_complex concat ile birleştir ───────────────
         if has_audio:
+            # aformat filtresi kullanarak her iki girdinin de tamamen aynı ses yapısında olmasını garantiliyoruz
             merge_cmd = [
                 "ffmpeg", "-y",
                 "-i", thumb_video,
                 "-i", video_path,
                 "-filter_complex",
-                "[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[outv][outa]",
+                f"[0:a]aformat=sample_rates={sample_rate}:channel_layouts={channel_layout}[a0];"
+                f"[1:a]aformat=sample_rates={sample_rate}:channel_layouts={channel_layout}[a1];"
+                f"[0:v][a0][1:v][a1]concat=n=2:v=1:a=1[outv][outa]",
                 "-map", "[outv]",
                 "-map", "[outa]",
                 "-c:v", "libx264",
@@ -181,7 +182,7 @@ def burn_thumbnail_into_video(video_path: str, thumbnail_path: str, duration: fl
 
         if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
             shutil.move(output_path, video_path)
-            print(f"[ThumbnailBurn] ✅ Thumbnail gömüldü ({width}x{height}, {duration}s, ses={'korundu' if has_audio else 'yok'})")
+            print(f"[ThumbnailBurn] ✅ Thumbnail gömüldü (Bulanık arka plan, ses onarıldı)")
             return video_path
         else:
             print(f"[ThumbnailBurn] Çıktı geçersiz, orijinal video kullanılacak")
