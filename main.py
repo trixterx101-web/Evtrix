@@ -238,7 +238,19 @@ class EvcarixOrchestrator:
             raise RuntimeError(f"[Main] Montaj çıktısı bulunamadı.")
         print(f"      ✅ Split-Screen Video hazır: {final_video_path}", flush=True)
 
-        print("\n[5/6] Thumbnail atlanıyor...", flush=True)
+        print("\n[5/6] Thumbnail üretiliyor...", flush=True)
+        thumbnail_path = None
+        try:
+            from src.thumbnail_generator import ThumbnailGenerator
+            thumb_gen = ThumbnailGenerator()
+            thumb_result = thumb_gen.create(title=title, topic=topic_key)
+            if thumb_result and os.path.exists(thumb_result):
+                thumbnail_path = thumb_result
+                print(f"      ✅ Thumbnail hazır: {thumbnail_path}", flush=True)
+            else:
+                print("      ⚠️ Thumbnail oluşturulamadı, yükleme thumbnail'siz devam edecek.", flush=True)
+        except Exception as te:
+            print(f"      ⚠️ Thumbnail hatası (yükleme devam edecek): {te}", flush=True)
 
         # ── 6. YouTube Yükleme ─────────────────────────────────────
         if self.uploader and self.uploader.youtube and os.path.exists(final_video_path):
@@ -250,7 +262,7 @@ class EvcarixOrchestrator:
                     description=description,
                     tags=tags,
                     playlist_name="Short Video",
-                    thumbnail_path=None
+                    thumbnail_path=thumbnail_path
                 )
                 print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                 print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)

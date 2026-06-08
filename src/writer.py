@@ -283,15 +283,15 @@ class CreativeWriter:
             hashtag_tags.insert(1, "#EVShorts")
 
         desc = (
-            f"⚡ {meta.get('hook_a', meta.get('hook', 'Shocking EV data.'))}\\n\\n"
-            f"{meta.get('seo_description', 'Exploring the latest EV data and trends.')}\\n\\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━\\n"
-            f"📊 MORE EV DATA FROM EVTRIX\\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━\\n"
-            f"🔔 Subscribe for daily EV data & real-world tests.\\n"
-            f"📱 Follow Evtrix — No hype. Just numbers.\\n\\n"
-            f"{' '.join(hashtag_tags)}\\n\\n"
-            f"---\\n"
+            f"⚡ {meta.get('hook_a', meta.get('hook', 'Shocking EV data.'))}\n\n"
+            f"{meta.get('seo_description', 'Exploring the latest EV data and trends.')}\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📊 MORE EV DATA FROM EVTRIX\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔔 Subscribe for daily EV data & real-world tests.\n"
+            f"📱 Follow Evtrix — No hype. Just numbers.\n\n"
+            f"{' '.join(hashtag_tags)}\n\n"
+            f"---\n"
             f"{STOCK_DISCLAIMER}"
         )
 
@@ -305,7 +305,7 @@ class CreativeWriter:
             "category_id": "28"  # Science & Technology
         }
 
-    def generate_long_content(self, topic: str, duration_s: int = 300):
+    def generate_long_content(self, topic: str, duration_s: int = 540):
         meta = generate_seo_metadata(topic, is_long=True)
         script_data = generate_script(topic, duration_s=duration_s, is_long=True)
 
@@ -320,26 +320,26 @@ class CreativeWriter:
         hashtag_tags = [f"#{t.replace(' ', '')}" for t in final_tags[:12]]
 
         desc = (
-            f"🚀 {meta.get('hook_a', meta.get('hook', 'Expert EV analysis.'))}\\n\\n"
-            f"{meta.get('seo_description', 'Deep-diving into the raw data and trends.')}\\n\\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n"
-            f"⏱️ CHAPTERS\\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n"
-            f"{intro_end} — Hook & Key Data Point\\n"
-            f"{analysis_start} — Deep Data Analysis\\n"
-            f"{insight_start} — Expert Insight\\n"
-            f"{conclusion_start} — Final Verdict\\n\\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n"
-            f"📌 MORE FROM EVTRIX\\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n"
-            f"⚡ Key points covered:\\n"
-            f"— Industry-leading EV data analysis\\n"
-            f"— Technical specifications & real-world performance\\n"
-            f"— Future market impact & what it means for you\\n\\n"
-            f"🔔 Subscribe to Evtrix — The #1 EV Data Channel.\\n"
-            f"📱 New data-driven EV content every week.\\n\\n"
-            f"{' '.join(hashtag_tags)}\\n\\n"
-            f"---\\n"
+            f"🚀 {meta.get('hook_a', meta.get('hook', 'Expert EV analysis.'))}\n\n"
+            f"{meta.get('seo_description', 'Deep-diving into the raw data and trends.')}\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"⏱️ CHAPTERS\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"{intro_end} — Hook & Key Data Point\n"
+            f"{analysis_start} — Deep Data Analysis\n"
+            f"{insight_start} — Expert Insight\n"
+            f"{conclusion_start} — Final Verdict\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"📌 MORE FROM EVTRIX\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"⚡ Key points covered:\n"
+            f"— Industry-leading EV data analysis\n"
+            f"— Technical specifications & real-world performance\n"
+            f"— Future market impact & what it means for you\n\n"
+            f"🔔 Subscribe to Evtrix — The #1 EV Data Channel.\n"
+            f"📱 New data-driven EV content every week.\n\n"
+            f"{' '.join(hashtag_tags)}\n\n"
+            f"---\n"
             f"{STOCK_DISCLAIMER}"
         )
 
