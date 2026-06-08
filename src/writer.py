@@ -230,36 +230,65 @@ def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
 def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **kwargs) -> dict:
     words = int(duration_s * 2.4)
 
+    # Farklı açılış hook'ları — her video farklı başlasın (YouTube benzer başlangıcı spam sayıyor)
+    import random
+    HOOK_STARTERS = [
+        "Here's a number that will change how you see {topic}:",
+        "Most people have no idea that {topic} works like this:",
+        "The data on {topic} is more shocking than anyone admits.",
+        "Nobody talks about this {topic} fact, but the numbers don't lie.",
+        "We ran the real numbers on {topic}. The results surprised even us.",
+        "If you own or plan to buy an EV, this {topic} data matters to you.",
+        "Quick question: do you actually know the real cost of {topic}?",
+        "Stop scrolling. This {topic} number will stick with you.",
+    ]
+    hook = random.choice(HOOK_STARTERS).replace("{topic}", topic)
+
     if is_long:
         tone = (
             "Style: No hype. Just numbers. Fact-first. Language: MANDATORY US ENGLISH. "
-            "Start naturally with a strong shocking statistic — NO greetings, NO 'welcome to'. "
-            "End with: 'Subscribe to Evtrix for real EV data every week.'"
+            "CRITICAL RULE: NEVER use 'Welcome to', 'Hello', 'Hey', 'In this video'. "
+            f"Start IMMEDIATELY with this hook sentence: '{hook}' then follow with a shocking statistic. "
+            "MID-VIDEO RULE: At the halfway point, add a 'pattern interrupt' — say something like "
+            "'But here's where it gets really interesting...' or 'Wait — this next number changes everything.' "
+            "This keeps viewers watching past the midpoint (critical for watch time). "
+            "END with a direct engagement CTA: 'What surprised you most? Drop it in the comments below.' "
+            "Then: 'Subscribe to Evtrix — new EV data every week. Hit the bell so you never miss it.'"
         )
         prompt = (
-            f"Write a professional {duration_s}-second deep-dive script (~{words} words) about: {topic}.\n"
+            f"Write a professional {duration_s}-second deep-dive EV script (~{words} words) about: {topic}.\n"
             f"{tone}\n"
-            "Structure: Hook (shocking stat) -> Data Analysis -> Expert Insight -> Conclusion.\n"
-            "CRITICAL: USE US ENGLISH ONLY. GLOBAL PERSPECTIVE. Real numbers only.\n"
+            "Structure:\n"
+            "1. HOOK (0-15s): Start with the provided hook + one shocking statistic.\n"
+            "2. DATA ANALYSIS (15s-50%): 3-4 key data points with global examples (USA, Europe, China).\n"
+            "3. PATTERN INTERRUPT (midpoint): Re-engage viewer with a surprising twist or reframe.\n"
+            "4. EXPERT INSIGHT (50%-85%): What experts/industry leaders say. Specific quotes or reports.\n"
+            "5. CONCLUSION + CTA (last 15%): Verdict + comment question + subscribe ask.\n"
+            "CRITICAL: Every sentence needs a number, %, $, kWh, or km value. No vague statements.\n"
+            "CRITICAL: US ENGLISH ONLY. Global perspective.\n"
             "Output ONLY the script text."
         )
     else:
         tone = (
             "Style: No hype. Just numbers. Fact-first. Language: MANDATORY US ENGLISH. "
-            "CRITICAL RULE: NEVER use introduction phrases like 'Welcome to', 'In this video', 'Hello', 'Hey'. "
-            "Start IMMEDIATELY with a shocking number, statistic, or fact. "
+            "CRITICAL RULE: NEVER use 'Welcome to', 'In this video', 'Hello', 'Hey', 'Hi'. "
+            f"Start IMMEDIATELY with this hook: '{hook}' "
             "Use specific percentages, kWh values, and real-world data. "
-            "End naturally with: 'Subscribe to Evtrix for real EV data.'"
+            "At the 60% mark, add ONE curiosity bridge line like 'But the real number is even more surprising...' "
+            "This prevents viewers from swiping away early. "
+            "End with a direct engagement line: 'Comment your thoughts below.' "
+            "Then: 'Subscribe to Evtrix for real EV data.'"
         )
         prompt = (
             f"Write a viral {duration_s}-second YouTube Shorts script (~{words} words) about: {topic}.\n"
             f"{tone}\n"
-            "Use specific percentages and kWh values. Global examples (USA, Europe, China).\n"
-            "CRITICAL: US ENGLISH ONLY. No filler words. Every sentence must have a data point.\n"
+            "Structure: Hook stat -> 2-3 data points -> Curiosity bridge -> Final verdict -> CTA.\n"
+            "Use specific numbers (%, $, miles, kWh). USA, Europe, China examples.\n"
+            "CRITICAL: US ENGLISH ONLY. Zero filler words. Every sentence = one data point.\n"
             "Output ONLY the script text."
         )
 
-    script = _llm_chain(prompt, fallback=f"The data on {topic} is shocking. Real numbers reveal surprising trends that most EV owners don't know. Subscribe to Evtrix for more.")
+    script = _llm_chain(prompt, fallback=f"{hook} The data on {topic} reveals trends most EV owners never see. Subscribe to Evtrix for more.")
     return {"script": script, "voice": "male" if is_long else "female"}
 
 
@@ -274,22 +303,40 @@ class CreativeWriter:
         if not chosen_title:
             chosen_title = meta.get('title', topic)
 
-        # Build SEO-optimized description with #Shorts for YouTube algorithm
         hashtag_tags = [f"#{t.replace(' ', '')}" for t in final_tags[:10]]
-        # Ensure #Shorts is always present for YouTube Shorts algorithm
         if "#Shorts" not in hashtag_tags:
             hashtag_tags.insert(0, "#Shorts")
         if "#EVShorts" not in hashtag_tags:
             hashtag_tags.insert(1, "#EVShorts")
 
+        seo_desc   = meta.get('seo_description', f'Exploring the latest data and trends behind {topic}.')
+        hook_a     = meta.get('hook_a', 'Shocking EV data.')
+        hook_b     = meta.get('hook_b', 'Real numbers, real impact.')
+        keywords   = meta.get('keywords', [topic, 'electric vehicle', 'EV data'])
+        kw_str     = ', '.join(keywords[:8]) if keywords else topic
+
         desc = (
-            f"⚡ {meta.get('hook_a', meta.get('hook', 'Shocking EV data.'))}\n\n"
-            f"{meta.get('seo_description', 'Exploring the latest EV data and trends.')}\n\n"
+            f"⚡ {hook_a}\n\n"
+            f"{seo_desc}\n\n"
+            f"In this short, Evtrix breaks down the real numbers behind {topic} — "
+            f"no opinion, no hype, just verified data from global industry reports. "
+            f"Whether you're an EV owner, considering your first electric vehicle, or just following "
+            f"clean energy trends, this data directly impacts your decisions.\n\n"
+            f"💡 {hook_b}\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📊 MORE EV DATA FROM EVTRIX\n"
+            f"📊 WHAT YOU'LL LEARN\n"
             f"━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔔 Subscribe for daily EV data & real-world tests.\n"
-            f"📱 Follow Evtrix — No hype. Just numbers.\n\n"
+            f"— The key stats and numbers on {topic}\n"
+            f"— How this compares across USA, Europe & China\n"
+            f"— What this means for EV buyers in 2025-2026\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔔 ABOUT EVTRIX\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Evtrix is an independent EV data channel covering electric vehicles, battery technology, "
+            f"autonomous driving, and the future of clean transport. "
+            f"We publish data-driven content every week — no sponsored bias, no hype.\n\n"
+            f"❓ What surprised you most about {topic}? Comment below — we read every reply.\n\n"
+            f"🔍 Keywords: {kw_str}\n\n"
             f"{' '.join(hashtag_tags)}\n\n"
             f"---\n"
             f"{STOCK_DISCLAIMER}"
@@ -302,7 +349,7 @@ class CreativeWriter:
             "tags": final_tags,
             "description": desc,
             "category": "short",
-            "category_id": "28"  # Science & Technology
+            "category_id": "28"
         }
 
     def generate_long_content(self, topic: str, duration_s: int = 540):
@@ -312,32 +359,51 @@ class CreativeWriter:
         final_tags = self._clean_tags(meta.get("tags", []))
 
         # Estimate chapters based on duration
-        intro_end = "0:00"
-        analysis_start = "1:00"
-        insight_start = f"{duration_s // 60 // 2}:{(duration_s // 2) % 60:02d}"
+        intro_end        = "0:00"
+        analysis_start   = "1:00"
+        insight_start    = f"{duration_s // 60 // 2}:{(duration_s // 2) % 60:02d}"
         conclusion_start = f"{(duration_s - 60) // 60}:{(duration_s - 60) % 60:02d}"
 
         hashtag_tags = [f"#{t.replace(' ', '')}" for t in final_tags[:12]]
 
+        seo_desc   = meta.get('seo_description', f'A deep-dive data analysis of {topic} by Evtrix.')
+        hook_a     = meta.get('hook_a', 'Expert EV analysis.')
+        hook_b     = meta.get('hook_b', 'Real numbers, real impact.')
+        keywords   = meta.get('keywords', [topic, 'electric vehicle', 'EV data'])
+        kw_str     = ', '.join(keywords[:10]) if keywords else topic
+
         desc = (
-            f"🚀 {meta.get('hook_a', meta.get('hook', 'Expert EV analysis.'))}\n\n"
-            f"{meta.get('seo_description', 'Deep-diving into the raw data and trends.')}\n\n"
+            f"🚀 {hook_a}\n\n"
+            f"{seo_desc}\n\n"
+            f"In this deep-dive, Evtrix breaks down the real data behind {topic}. "
+            f"We analyze verified numbers from global EV industry reports, manufacturer data, "
+            f"and independent research — covering markets in the USA, Europe, and China. "
+            f"If you're an EV enthusiast, buyer, or investor, this analysis gives you the edge "
+            f"most YouTube channels won't touch.\n\n"
+            f"💡 {hook_b}\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"⏱️ CHAPTERS\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"{intro_end} — Hook & Key Data Point\n"
+            f"{intro_end} — Hook & Shocking Data Point\n"
             f"{analysis_start} — Deep Data Analysis\n"
-            f"{insight_start} — Expert Insight\n"
-            f"{conclusion_start} — Final Verdict\n\n"
+            f"{insight_start} — Industry Expert Insight\n"
+            f"{conclusion_start} — Final Verdict & What It Means for You\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📌 MORE FROM EVTRIX\n"
+            f"📌 WHAT'S COVERED IN THIS VIDEO\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"⚡ Key points covered:\n"
-            f"— Industry-leading EV data analysis\n"
-            f"— Technical specifications & real-world performance\n"
-            f"— Future market impact & what it means for you\n\n"
-            f"🔔 Subscribe to Evtrix — The #1 EV Data Channel.\n"
-            f"📱 New data-driven EV content every week.\n\n"
+            f"— Industry-leading EV data & real-world performance analysis on {topic}\n"
+            f"— Technical specifications compared across major EV brands (Tesla, BYD, Rivian, Hyundai, VW)\n"
+            f"— Market trends in the US, EU, and Chinese EV markets (2024-2026 data)\n"
+            f"— Future impact: what the {topic} trend means for EV buyers & investors\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔔 ABOUT EVTRIX\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Evtrix is an independent EV data and analysis channel. We cover electric vehicles, "
+            f"battery technology, autonomous driving systems, EV charging infrastructure, and the "
+            f"future of sustainable transport. Our content is 100% data-driven — no sponsored "
+            f"opinions, no manufacturer bias. Subscribe for new analysis every week.\n\n"
+            f"❓ What surprised you most about {topic}? Drop your take in the comments — we reply to everyone.\n\n"
+            f"🔍 Keywords: {kw_str}\n\n"
             f"{' '.join(hashtag_tags)}\n\n"
             f"---\n"
             f"{STOCK_DISCLAIMER}"
@@ -354,7 +420,7 @@ class CreativeWriter:
             "tags": final_tags,
             "description": desc,
             "category": "long",
-            "category_id": "28"  # Science & Technology
+            "category_id": "28"
         }
 
     def _clean_tags(self, tags: list) -> list:
