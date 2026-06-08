@@ -171,7 +171,14 @@ class EvcarixOrchestrator:
                     except Exception as te:
                         thumbnail_path = None
                         print(f"      ⚠️ Thumbnail hatası: {te}", flush=True)
-                
+                # ── Thumbnail'i videonun ilk karesine göm (YouTube API reddetse bile çalışır) ──
+                if thumbnail_path and os.path.exists(thumbnail_path):
+                    try:
+                        from src.utils.thumbnail_burn import burn_thumbnail_into_video
+                        final_video_path = burn_thumbnail_into_video(final_video_path, thumbnail_path, duration=0.5)
+                    except Exception as be:
+                        print(f"      ⚠️ Thumbnail burn hatası (devam ediliyor): {be}", flush=True)
+
                 if self.uploader and self.uploader.youtube and os.path.exists(final_video_path):
                     print("\n[6/6] YouTube'a yükleniyor...", flush=True)
                     try:
@@ -286,6 +293,14 @@ class EvcarixOrchestrator:
                 print("      ⚠️ Thumbnail oluşturulamadı, yükleme thumbnail'siz devam edecek.", flush=True)
         except Exception as te:
             print(f"      ⚠️ Thumbnail hatası (yükleme devam edecek): {te}", flush=True)
+
+        # ── Thumbnail'i videonun ilk karesine göm ──────────────────
+        if thumbnail_path and os.path.exists(thumbnail_path):
+            try:
+                from src.utils.thumbnail_burn import burn_thumbnail_into_video
+                final_video_path = burn_thumbnail_into_video(final_video_path, thumbnail_path, duration=0.5)
+            except Exception as be:
+                print(f"      ⚠️ Thumbnail burn hatası (devam ediliyor): {be}", flush=True)
 
         # ── 6. YouTube Yükleme ─────────────────────────────────────
         if self.uploader and self.uploader.youtube and os.path.exists(final_video_path):
