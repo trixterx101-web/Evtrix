@@ -85,7 +85,7 @@ class EvcarixOrchestrator:
                 log("[Uploader] ⚠️ UYARI: Video üretilecek ancak otomatik yükleme yapılmayacak.")
                 self.uploader = None
 
-    async def run_daily_shorts_workflow(self):
+    async def run_daily_shorts_workflow(self, forced_topic: str = None):
         now  = datetime.datetime.now()
         slot = os.getenv("UPLOAD_SLOT", "evening")
         ts   = now.strftime("%Y%m%d_%H%M%S")
@@ -94,15 +94,34 @@ class EvcarixOrchestrator:
         clip_count = max(6, math.ceil(target_duration / 4))
 
         print(f"\n{'='*60}", flush=True)
-        print(f"  Evcarix Auto-Studio — {now.strftime('%d %b %Y, %H:%M')}", flush=True)
+        print(f"  Evcarix Short Studio — {now.strftime('%d %b %Y, %H:%M')}", flush=True)
         print(f"  Format: 1080x1920 (9:16), {target_duration}s", flush=True)
         print(f"  Slot: {slot.upper()}", flush=True)
+        if forced_topic:
+            print(f"  🔗 Konu (Long Video'dan): {forced_topic}", flush=True)
         print(f"{'='*60}\n", flush=True)
 
         content_mode = os.getenv("CONTENT_MODE", "auto")
         slot = os.getenv("UPLOAD_SLOT", "evening")
-        
-        plan        = self.brain.create_daily_plan(slot=slot, video_type="short")
+
+        # ── Konu Belirleme: forced_topic varsa Long Video konusunu kullan ──
+        if forced_topic:
+            log(f"[Shorts] Zorla konu kullanılıyor: {forced_topic}")
+            from src.writer import CreativeWriter
+            _writer = CreativeWriter()
+            _content = _writer.generate_short_content(forced_topic)
+            plan = {
+                "topic":       forced_topic,
+                "full_topic":  forced_topic,
+                "script":      _content["script"],
+                "title":       _content["title"],
+                "description": _content["description"],
+                "tags":        _content.get("tags", []),
+                "voice":       _content.get("voice", "female"),
+            }
+        else:
+            plan = self.brain.create_daily_plan(slot=slot, video_type="short")
+
         script      = plan['script']
         topic       = plan['topic']
         full_topic  = plan['full_topic']
@@ -418,19 +437,33 @@ class EvcarixOrchestrator:
         print(f"  Süre     : {target_duration}s")
         print(f"{'='*60}\n")
 
+        # Aynı konuyu Short'a aktar
+        return {"topic": topic, "title": title}
+
 
 if __name__ == "__main__":
     orchestrator = EvcarixOrchestrator()
-    
+
     video_type  = os.environ.get("VIDEO_TYPE", "short").strip().lower()
     upload_slot = os.environ.get("UPLOAD_SLOT", "evening").strip()
     is_long     = video_type == "long" or upload_slot == "SUNDAY_LONG"
 
-    try:
+    async def _run():
         if is_long:
-            asyncio.run(orchestrator.run_weekly_long_video_workflow())
+            # ── 1. Uzun video üret ────────────────────────────────
+            long_result = await orchestrator.run_weekly_long_video_workflow()
+
+            # ── 2. Aynı konudan hemen Short üret ─────────────────
+            forced_topic = long_result.get("topic") if long_result else None
+            log(f"\n{'='*60}")
+            log(f"  🎬 Short video üretiliyor — Konu: {forced_topic}")
+            log(f"{'='*60}\n")
+            await orchestrator.run_daily_shorts_workflow(forced_topic=forced_topic)
         else:
-            asyncio.run(orchestrator.run_daily_shorts_workflow())
+            await orchestrator.run_daily_shorts_workflow()
+
+    try:
+        asyncio.run(_run())
     except Exception as e:
         print(f">>> [FATAL] Critical error in main loop: {e}", flush=True)
         sys.exit(1)
