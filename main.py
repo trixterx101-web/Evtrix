@@ -485,13 +485,6 @@ if __name__ == "__main__":
         if is_long:
             # ── 1. Uzun video üret ────────────────────────────────
             long_result = await orchestrator.run_weekly_long_video_workflow()
-
-            # ── 2. Aynı konudan hemen Short üret ─────────────────
-            forced_topic = long_result.get("topic") if long_result else None
-            log(f"\n{'='*60}")
-            log(f"  🎬 Short video üretiliyor — Konu: {forced_topic}")
-            log(f"{'='*60}\n")
-            await orchestrator.run_daily_shorts_workflow(forced_topic=forced_topic)
         else:
             await orchestrator.run_daily_shorts_workflow()
 
