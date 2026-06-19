@@ -39,6 +39,11 @@ on:
         options:
           - 'true'
           - 'false'
+      forced_topic:
+        description: 'Short için zorunlu konu (boş = otomatik seç). Örn: Humanoid Robots 2025 Goldman Sachs Report'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   produce-video:
@@ -141,6 +146,7 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
             echo "VIDEO_TYPE=${{ github.event.inputs.video_type }}" >> $GITHUB_ENV
+            echo "FORCED_TOPIC=${{ github.event.inputs.forced_topic }}" >> $GITHUB_ENV
           elif [ "${{ github.event.schedule }}" == "0 12 * * 5" ]; then
             # TR 15:00 — Cum — Long (Sadece Uzun)
             echo "CONTENT_MODE=auto" >> $GITHUB_ENV
