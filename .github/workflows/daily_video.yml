@@ -2,7 +2,8 @@ name: Evcarix Ultra-HD Pipeline v2
 
 on:
   schedule:
-    - cron: '0 12 * * 5'   # TR 15:00 — Cuma — Long Video
+    - cron: '0 12 * * 5'   # TR 15:00 — Cuma — Long + Short Video
+    - cron: '0 6 * * 1'    # TR 09:00 — Pazartesi — Konu Kuyruğunu Yenile
   workflow_dispatch:
     inputs:
       video_type:
@@ -128,6 +129,7 @@ jobs:
             used_clips.json
             used_videos.json
             license_log.json
+            topic_queue.json
           key: evcarix-history-v2-${{ github.run_id }}
           restore-keys: |
             evcarix-history-v2-
@@ -147,8 +149,12 @@ jobs:
             echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
             echo "VIDEO_TYPE=${{ github.event.inputs.video_type }}" >> $GITHUB_ENV
             echo "FORCED_TOPIC=${{ github.event.inputs.forced_topic }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.schedule }}" == "0 6 * * 1" ]; then
+            # TR 09:00 — Pzt — Sadece konu kuyruğunu yenile, video üretme
+            echo "CONTENT_MODE=refresh_queue" >> $GITHUB_ENV
+            echo "VIDEO_TYPE=none" >> $GITHUB_ENV
           elif [ "${{ github.event.schedule }}" == "0 12 * * 5" ]; then
-            # TR 15:00 — Cum — Long (Sadece Uzun)
+            # TR 15:00 — Cum — Long + Short
             echo "CONTENT_MODE=auto" >> $GITHUB_ENV
             echo "VIDEO_TYPE=long" >> $GITHUB_ENV
           else
@@ -160,7 +166,7 @@ jobs:
 
       # ── 11. Video Üretimi ─────────────────────────────────────────────────────
       - name: ⚡ Production Run (Auto-Monitor)
-        timeout-minutes: 50
+        timeout-minutes: 110
         env:
           # LLM
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -217,6 +223,7 @@ jobs:
             used_clips.json
             used_videos.json
             license_log.json
+            topic_queue.json
           key: evcarix-history-v2-${{ github.run_id }}
 
       # ── 13. Ses Cache Kaydet ──────────────────────────────────────────────────

@@ -475,18 +475,51 @@ class EvcarixOrchestrator:
 
 
 if __name__ == "__main__":
-    orchestrator = EvcarixOrchestrator()
+    video_type    = os.environ.get("VIDEO_TYPE", "short").strip().lower()
+    upload_slot   = os.environ.get("UPLOAD_SLOT", "evening").strip()
+    content_mode  = os.environ.get("CONTENT_MODE", "auto").strip().lower()
+    is_long       = video_type == "long" or upload_slot == "SUNDAY_LONG"
 
-    video_type  = os.environ.get("VIDEO_TYPE", "short").strip().lower()
-    upload_slot = os.environ.get("UPLOAD_SLOT", "evening").strip()
-    is_long     = video_type == "long" or upload_slot == "SUNDAY_LONG"
+    # ── Pazartesi: Sadece konu kuyruğunu yenile ──────────────────────
+    if content_mode == "refresh_queue" or video_type == "none":
+        log(">>> [SYSTEM] Konu Kuyruğu Yenileme Modu — Video üretilmeyecek")
+        try:
+            from src.topic_queue import TopicQueue
+            q = TopicQueue()
+            count = q.refresh(force=True)
+            st = q.status()
+            log(f">>> [TopicQueue] ✅ Kuyruk yenilendi: {count} konu")
+            log(f">>> [TopicQueue] En yüksek puanlı 5 konu:")
+            for t in st["top_topics"][:5]:
+                log(f"  [{t['rank']}] ({t['score']}p) [{t['source']}] {t['topic']}")
+        except Exception as e:
+            log(f">>> [FATAL] Kuyruk yenileme hatası: {e}")
+            sys.exit(1)
+        sys.exit(0)
+
+    # ── Normal video üretim modu ──────────────────────────────────────
+    orchestrator = EvcarixOrchestrator()
 
     async def _run():
         if is_long:
             # ── 1. Uzun video üret ────────────────────────────────
             long_result = await orchestrator.run_weekly_long_video_workflow()
+
+            # ── 2. Hemen ardından aynı konuyla Short üret ─────────
+            if long_result and long_result.get("topic"):
+                short_topic = long_result["topic"]
+                print(f"\n{'='*60}", flush=True)
+                print(f"  🎬 Long Video tamamlandı — aynı konuyla Short üretiliyor...", flush=True)
+                print(f"  📌 Konu: {short_topic.encode('ascii', 'ignore').decode('ascii')}", flush=True)
+                print(f"{'='*60}\n", flush=True)
+                await orchestrator.run_daily_shorts_workflow(forced_topic=short_topic)
+            else:
+                print(">>> [WARN] Long video konusu alınamadı, Short üretimi atlandı.", flush=True)
         else:
-            await orchestrator.run_daily_shorts_workflow()
+            forced_topic = os.environ.get("FORCED_TOPIC", None)
+            if forced_topic and forced_topic.strip() == "":
+                forced_topic = None
+            await orchestrator.run_daily_shorts_workflow(forced_topic=forced_topic)
 
     try:
         asyncio.run(_run())

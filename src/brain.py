@@ -188,6 +188,13 @@ class EvcarixBrain:
     def __init__(self):
         self.trend_engine = TrendEngine()
         self.writer = CreativeWriter()
+        # TopicQueue: trend-tabanlı akıllı kuyruk
+        try:
+            from src.topic_queue import TopicQueue
+            self._topic_queue = TopicQueue()
+        except Exception as e:
+            print(f"[Brain] TopicQueue yüklenemedi: {e}")
+            self._topic_queue = None
 
     def _load_history(self):
         if os.path.exists(HISTORY_FILE):
@@ -210,15 +217,36 @@ class EvcarixBrain:
         content_mode = os.getenv("CONTENT_MODE", "auto").strip().lower()
         print(f"[Brain] Content Mode: {content_mode}")
 
-        # ── 1. Trend Modu ─────────────────────────────────────────
+        # ── 0. TopicQueue (Trend Kuyruğu) — EN YÜKSEK ÖNCELİK ───
+        # auto veya trend modunda, her iki video tipi için de denenir
+        if content_mode in ("auto", "trend") and self._topic_queue:
+            try:
+                # Kuyruk boşsa önce kaynaklardan doldur
+                if len(self._topic_queue._queue) == 0:
+                    print("[Brain] 📥 Kuyruk boş, kaynaklar taranıyor...")
+                    self._topic_queue.refresh()
+
+                next_item = self._topic_queue.pop_next()
+                if next_item:
+                    topic = next_item["topic"]
+                    source = next_item["source"]
+                    score  = next_item["score"]
+                    print(f"[Brain] ✅ Kuyruktan konu alındı ({score}p) [{source}]: {topic[:70]}")
+                    return topic, None
+                else:
+                    print("[Brain] ⚠️ Kuyruk boş, sonraki fallback'e geçiliyor.")
+            except Exception as e:
+                print(f"[Brain] TopicQueue hatası: {e}")
+
+        # ── 1. Trend Modu (eski — YouTube anlık tarama) ───────────
         if content_mode == "trend" and video_type == "short":
             try:
                 trend_plan = self.trend_engine.trigger_from_youtube_trend(hours_back=48)
                 if trend_plan:
-                    print(f"[Brain] 🔥 Trend modu aktif: {trend_plan['title']}")
+                    print(f"[Brain] 🔥 Anlık trend modu: {trend_plan['title']}")
                     return trend_plan['full_topic'], trend_plan
                 else:
-                    print("[Brain] ⚠️ Trend bulunamadı, auto moda geçiliyor.")
+                    print("[Brain] ⚠️ Anlık trend bulunamadı, auto moda geçiliyor.")
             except Exception as e:
                 print(f"[Brain] Trend hatası: {e}")
 
@@ -248,7 +276,7 @@ class EvcarixBrain:
             print(f"[Brain] 🎯 Manuel mod ({content_mode}): {topic}")
             return topic, None
 
-        # ── 4. Sıralı Havuz (Auto/Default) ───────────────────────
+        # ── 4. Sıralı CSV Havuzu (son fallback) ──────────────────
         try:
             csv_path = os.path.join("data", "topics.csv")
             if not os.path.exists(csv_path):
@@ -274,7 +302,7 @@ class EvcarixBrain:
                 idx = 0
 
             # ── EV-Only Niş Filtresi ──────────────────────────────
-            EV_KEYWORDS = {
+            EV_KW = {
                 "ev", "electric", "battery", "charge", "charging", "range",
                 "motor", "vehicle", "car", "tesla", "byd", "rivian",
                 "kwh", "volt", "solar", "grid", "v2g", "lfp", "nmc",
@@ -293,7 +321,7 @@ class EvcarixBrain:
             while skipped < max_skip:
                 row = df.iloc[idx % len(df)]
                 candidate = row['topic']
-                if any(kw in candidate.lower() for kw in EV_KEYWORDS):
+                if any(kw in candidate.lower() for kw in EV_KW):
                     topic = candidate
                     category = row.get('category_id', 'general')
                     break
@@ -305,12 +333,12 @@ class EvcarixBrain:
             with open(state_file, "w") as f:
                 json.dump(state, f)
 
-            print(f"[Brain] 🔄 Sıralı seçim: [{idx+1}/{len(df)}] ({category}) -> {topic}")
+            print(f"[Brain] 🔄 CSV sıralı seçim: [{idx+1}/{len(df)}] ({category}) -> {topic}")
             return topic, None
 
         except Exception as e:
             import traceback
-            print(f"[Brain] ❌ Sıralı seçim hatası: {e}")
+            print(f"[Brain] ❌ CSV seçim hatası: {e}")
             traceback.print_exc()
             return "Future of Electric Vehicles", None
 
