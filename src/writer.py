@@ -57,7 +57,7 @@ def _available_keys(keys: list[str]) -> list[str]:
 # PROVIDERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-def call_groq(prompt: str, model: str = "llama-3.3-70b-versatile") -> Optional[str]:
+def call_groq(prompt: str, model: str = "llama-3.3-70b-versatile", max_tokens: int = 900) -> Optional[str]:
     avail = _available_keys(_GROQ_KEYS)
     if not avail: return None
     try:
@@ -69,7 +69,7 @@ def call_groq(prompt: str, model: str = "llama-3.3-70b-versatile") -> Optional[s
                     model=model,
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.7,
-                    max_tokens=900,
+                    max_tokens=max_tokens,
                 )
                 return resp.choices[0].message.content.strip()
             except Exception:
@@ -139,10 +139,10 @@ def call_gemini(prompt: str, model: str = "gemini-2.0-flash") -> Optional[str]:
 # CORE CHAIN
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _llm_chain(prompt: str, fallback: str = "") -> str:
+def _llm_chain(prompt: str, fallback: str = "", max_tokens: int = 900) -> str:
     """v9.0 Revised Chain"""
     providers = [
-        lambda: call_groq(prompt),
+        lambda: call_groq(prompt, max_tokens=max_tokens),
         lambda: call_openrouter(prompt, "meta-llama/llama-3-8b-instruct:free"),
         lambda: call_openrouter(prompt, "mistralai/mistral-7b-instruct"),
     ]
@@ -245,6 +245,8 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
     hook = random.choice(HOOK_STARTERS).replace("{topic}", topic)
 
     if is_long:
+        # 3-4 dakika = ~390-520 kelime (130 kelime/dakika TTS hızı)
+        min_words = max(words, 400)
         tone = (
             "Style: No hype. Just numbers. Fact-first. Language: MANDATORY US ENGLISH. "
             "CRITICAL RULE: NEVER use 'Welcome to', 'Hello', 'Hey', 'In this video'. "
@@ -256,7 +258,7 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
             "Then: 'Subscribe to Evcarix — new EV data every week. Hit the bell so you never miss it.'"
         )
         prompt = (
-            f"Write a professional {duration_s}-second deep-dive EV script (~{words} words) about: {topic}.\n"
+            f"Write a professional {duration_s}-second deep-dive EV script (MINIMUM {min_words} words, target {words} words) about: {topic}.\n"
             f"{tone}\n"
             "Structure:\n"
             "1. HOOK (0-15s): Start with the provided hook + one shocking statistic.\n"
@@ -266,8 +268,20 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
             "5. CONCLUSION + CTA (last 15%): Verdict + comment question + subscribe ask.\n"
             "CRITICAL: Every sentence needs a number, %, $, kWh, or km value. No vague statements.\n"
             "CRITICAL: US ENGLISH ONLY. Global perspective.\n"
-            "Output ONLY the script text."
+            f"CRITICAL: Script MUST be at least {min_words} words long. This is a 3-4 minute video, not a short.\n"
+            "Output ONLY the script text. No headings, no labels, just the spoken words."
         )
+        # Uzun video için yüksek token limiti ile üret + minimum kelime kontrolü
+        script_text = _llm_chain(prompt, fallback=f"{hook} The data on {topic} reveals trends most EV owners never see. Subscribe to Evcarix for more.", max_tokens=4000)
+        # Minimum kelime kontrolü — kısa geldiyse bir kez daha dene
+        if len(script_text.split()) < min_words:
+            logger.warning(f"[Writer] Script çok kısa ({len(script_text.split())} kelime), yeniden üretiliyor...")
+            print(f"[Writer] ⚠️ Script çok kısa ({len(script_text.split())} kelime < {min_words}), retry...", flush=True)
+            script_text2 = _llm_chain(prompt, fallback=script_text, max_tokens=4000)
+            if len(script_text2.split()) > len(script_text.split()):
+                script_text = script_text2
+        print(f"[Writer] ✅ Script uzunluğu: {len(script_text.split())} kelime (~{len(script_text.split())//130:.1f} dk)", flush=True)
+        return {"script": script_text, "voice": "male"}
     else:
         tone = (
             "Style: No hype. Just numbers. Fact-first. Language: MANDATORY US ENGLISH. "
@@ -289,7 +303,7 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
         )
 
     script = _llm_chain(prompt, fallback=f"{hook} The data on {topic} reveals trends most EV owners never see. Subscribe to Evcarix for more.")
-    return {"script": script, "voice": "male" if is_long else "female"}
+    return {"script": script, "voice": "female"}
 
 
 class CreativeWriter:
