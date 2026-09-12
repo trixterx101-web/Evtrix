@@ -73,7 +73,7 @@ class AutoEditor:
                 "-pix_fmt", "yuv420p", "-threads", "2", "-an",
                 temp_video
             ]
-            r = subprocess.run(cmd_v, capture_output=True, text=True, timeout=600)
+            r = subprocess.run(cmd_v, capture_output=True, text=True, timeout=1200)
             if r.returncode != 0:
                 logger.error(f"[Editor] Pass 1 failed: {r.stderr[-400:]}")
                 return False
@@ -88,7 +88,7 @@ class AutoEditor:
                 "-t", str(round(duration, 3)),
                 "-shortest", output_path
             ]
-            r2 = subprocess.run(cmd_a, capture_output=True, text=True, timeout=120)
+            r2 = subprocess.run(cmd_a, capture_output=True, text=True, timeout=900)
             if r2.returncode != 0:
                 logger.error(f"[Editor] Pass 2 failed: {r2.stderr[-400:]}")
                 return False
