@@ -85,7 +85,7 @@ def update_env(channel_id: str):
 
 def main():
     print("=" * 60)
-    print("  Evtrix — YouTube Kanal Değiştirme Aracı")
+    print("  Evcarix — YouTube Kanal Değiştirme Aracı")
     print("=" * 60)
 
     if not os.path.exists(CLIENT_SECRET_FILE):

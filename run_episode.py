@@ -1,5 +1,5 @@
 """
-run_episode.py — Evtrix Injected Episode Runner
+run_episode.py — Evcarix Injected Episode Runner
 ================================================
 Bypasses Brain / auto-topic selection.
 Takes a fully pre-written script + metadata and runs it through:
@@ -75,7 +75,7 @@ EPISODE = {
 
         SOURCE: Goldman Sachs 2026 Humanoid Robot Report, page 47; Morgan Stanley Note; Tesla Q2 2026 Shareholder Deck.
 
-        New data every Friday 15:00 TR. Subscribe to Evtrix.
+        New data every Friday 15:00 TR. Subscribe to Evcarix.
 
         ---
         Stock footage courtesy of Pexels, Pixabay (CC0).
@@ -84,7 +84,7 @@ EPISODE = {
 
     "tags": [
         "Tesla", "Optimus", "HumanoidRobots", "GoldmanSachs",
-        "RobotCost", "Evtrix", "Robotics", "Manufacturing",
+        "RobotCost", "Evcarix", "Robotics", "Manufacturing",
         "GigaTexas", "TeslaFactory", "MorganStanley", "DataJournalism",
         "AI", "Automation", "FutureTech"
     ],
@@ -242,7 +242,7 @@ async def run(dry_run: bool = False):
     ep  = EPISODE
 
     print(f"\n{'='*64}", flush=True)
-    print(f"  Evtrix Episode Runner", flush=True)
+    print(f"  Evcarix Episode Runner", flush=True)
     print(f"  Series : {ep['series'].upper()}", flush=True)
     print(f"  Episode: {ep['episode']:02d}", flush=True)
     print(f"  Title  : {ep['title'][:60]}...", flush=True)
@@ -413,7 +413,7 @@ async def run(dry_run: bool = False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Evtrix Episode Runner")
+    parser = argparse.ArgumentParser(description="Evcarix Episode Runner")
     parser.add_argument(
         "--dry-run", action="store_true",
         help="Generate video + thumbnail without uploading to YouTube"

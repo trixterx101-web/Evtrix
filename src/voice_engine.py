@@ -28,27 +28,20 @@ class VoiceEngine:
         
         word_timings = []
         try:
-            # Ses dosyasını kaydet ve word boundaries topla
-            with open(output_path, "wb") as f:
-                async for chunk in communicate.stream():
-                    if chunk["type"] == "audio":
-                        f.write(chunk["data"])
-                    elif chunk["type"] in ["WordBoundary", "word", "boundary"]:
-                        word_timings.append({
-                            "text": chunk["text"],
-                            "start": chunk["offset"] / 10**7,
-                            "duration": chunk["duration"] / 10**7
-                        })
+            # Use save() — much more reliable than stream() for avoiding hangs
+            await asyncio.wait_for(communicate.save(output_path), timeout=60)
+            logger.info(f"[VoiceEngine] Audio saved to {output_path}")
+        except asyncio.TimeoutError:
+            logger.error("[VoiceEngine] TTS timed out after 60s")
         except Exception as e:
             logger.error(f"TTS Error: {e}")
 
         # Süreyi hesapla
         duration = await self._get_duration(output_path)
         
-        # GUARANTEED FALLBACK
-        if not word_timings or len(word_timings) == 0:
-            logger.warning("[VoiceEngine] FORCE fallback timing.")
-            word_timings = self._generate_fallback_timings(text, duration)
+        # GUARANTEED FALLBACK timings (save() doesn't stream boundaries)
+        logger.warning("[VoiceEngine] Using fallback timing (save mode).")
+        word_timings = self._generate_fallback_timings(text, duration)
 
         logger.info(f"[VoiceEngine] FINAL TIMINGS = {len(word_timings)}")
         

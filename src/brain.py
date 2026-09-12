@@ -90,7 +90,7 @@ def _improve_title_with_gemini(topic: str, raw_title: str) -> str:
         if not keys:
             return raw_title
 
-        prompt = f"""You are a YouTube title expert for the channel "Evtrix" — the #1 EV data channel. Topics: EVs, AI, Battery Tech, Robotics, Future Technology.
+        prompt = f"""You are a YouTube title expert for the channel "Evcarix" — the #1 EV data channel. Topics: EVs, AI, Battery Tech, Robotics, Future Technology.
 
 Topic: {topic}
 Current title: {raw_title}

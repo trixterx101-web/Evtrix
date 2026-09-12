@@ -94,7 +94,7 @@ EKLENECEK TAGS (Her videoya):
 electric vehicles, EV review, electric cars, EV range test, battery technology,
 AI technology, EV tech, Tesla, BYD, Rivian, Lucid Motors, electric car range,
 EV battery life, fast charging EV, EV charging cost, electric mobility,
-autonomous vehicles, electric future, EV trends, Evtrix
+autonomous vehicles, electric future, EV trends, Evcarix
 
 ==============================================================
 GÖREV 4: PLAYLİSTLER OLUŞTUR

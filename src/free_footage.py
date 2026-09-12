@@ -1,5 +1,5 @@
 """
-Evtrix Free Footage Engine
+Evcarix Free Footage Engine
 Sources (all 100% copyright-safe for monetized YouTube):
   1. Internet Archive  — millions of public domain / CC videos
   2. NASA & US Government — public domain by law

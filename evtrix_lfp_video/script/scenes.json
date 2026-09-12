@@ -1,0 +1,103 @@
+{
+  "title": "LFP Batteries: Built to Last or Built to Confuse?",
+  "channel": "EVTRIX",
+  "target_duration": "5:45",
+  "scenes": [
+    {
+      "id": 1,
+      "label": "HOOK",
+      "time_range": "0:00-0:20",
+      "narration": "They told you LFP batteries would survive a million miles. Then a driver posts a screenshot: full charge last night, ten percent gone by morning. No crash. No fault code. Just... gone. So which one is lying — the lab chart, or the dashboard? Today we pull the real data and find out.",
+      "visual_type": "intro_bumper",
+      "visual_notes": "EVTRIX intro bumper, fast cuts, navy/cyan glow, phone mockup with -10% overnight notification"
+    },
+    {
+      "id": 2,
+      "label": "THE PROMISE",
+      "time_range": "0:20-0:55",
+      "narration": "Start with the chart every manufacturer loves to show. Two curves. LFP barely bends — over four thousand charge cycles before it drops to eighty percent health. Translate that to driving, and you're looking at well over a million miles. NMC taps out twice as fast, around two thousand cycles. On paper, LFP looks unbreakable. But that chart was drawn in a lab — fixed temperature, perfect charging behavior, zero real-world chaos. The moment you leave the lab, the story gets complicated.",
+      "visual_type": "dual_curve_chart",
+      "visual_notes": "Two-curve line chart, Curve A=NMC orange, Curve B=LFP cyan, LABORATORY CONDITIONS stamp"
+    },
+    {
+      "id": 3,
+      "label": "THE COMPLAINTS",
+      "time_range": "0:55-1:25",
+      "narration": "Scroll through enough EV forums and a pattern shows up fast. Lost ten percent overnight. Range tanked the second it got cold. BMS says fifty percent — feels like thirty. These aren't isolated complaints. They're a signal that something doesn't match the marketing slide. And the surprise is this: the battery usually isn't broken. The math reading it is.",
+      "visual_type": "social_post_cards",
+      "visual_notes": "Three fake social media post cards with red highlight lines, forum-style UI"
+    },
+    {
+      "id": 4,
+      "label": "VOLTAGE BLIND ZONE",
+      "time_range": "1:25-2:20",
+      "narration": "Here's the part almost nobody explains. Every battery management system estimates charge by reading voltage. In NMC cells, voltage falls in a smooth, predictable slope. LFP doesn't cooperate. Between roughly eighty and thirty percent state of charge, the voltage curve goes almost flat — stuck in a narrow band for most of the usable range. We call this the blind zone. The BMS can't tell seventy percent from forty percent just by reading volts, so it switches to counting energy in and out instead — a method that drifts further from reality with every cycle. That drift, not chemical decay, is the real source of most sudden range loss.",
+      "visual_type": "voltage_blindzone_chart",
+      "visual_notes": "Voltage curve chart, flat blind zone highlighted in cyan, BMS chip icon"
+    },
+    {
+      "id": 5,
+      "label": "PHANTOM DROP",
+      "time_range": "2:20-3:00",
+      "narration": "Here's how a phantom drop actually happens, step by step. One: because of the blind zone, the BMS underestimates capacity — your screen might show ninety percent when the cells are essentially full. Two: you charge to one hundred and let the car sit. The cells balance, and the system finally sees the true voltage peak. Three: the BMS recalculates — and the lost range reappears, all at once, like nothing ever happened. Because nothing did. The capacity was never gone. The number was just wrong.",
+      "visual_type": "three_step_flow",
+      "visual_notes": "3-step numbered flow diagram (1->2->3), battery percentage animation per step"
+    },
+    {
+      "id": 6,
+      "label": "HIDDEN BUFFER",
+      "time_range": "3:00-3:35",
+      "narration": "There's a second reason LFP looks like it ages faster: buffers. To protect more fragile chemistries, manufacturers quietly reserve extra capacity at the top and bottom — capacity you never see. As an NMC pack ages, it eats into that hidden reserve first, so the dashboard barely moves. LFP cells are tougher, so the buffer is much thinner. Every percent of real wear shows up almost immediately. It's not that LFP degrades faster. It's that LFP doesn't lie to you about it.",
+      "visual_type": "capacity_buffer_bars",
+      "visual_notes": "Horizontal battery capacity bars, NMC with large hidden grey buffer zone, LFP with almost no buffer"
+    },
+    {
+      "id": 7,
+      "label": "FIRST YEAR FEAR",
+      "time_range": "3:35-4:05",
+      "narration": "Look at the first six to twelve months of any LFP pack, and you'll usually see an early dip — two to three percent. This is the SEI layer: a thin film that forms as the chemistry settles in. It's unavoidable, it happens once, and then it stops. The problem is psychological — owners see that early drop, panic, and assume the line keeps falling. It doesn't. After settling, the curve flattens for years.",
+      "visual_type": "panic_to_stable_graph",
+      "visual_notes": "Red panic zone transitioning to green stability zone time-series graph"
+    },
+    {
+      "id": 8,
+      "label": "COLD WEATHER WEAKNESS",
+      "time_range": "4:05-4:35",
+      "narration": "To be fair, LFP isn't perfect. Drop the temperature toward freezing, and usable range can fall by as much as forty percent — noticeably worse than NMC's roughly twenty-five. Ion movement slows hard in the cold, and without preheating, charge acceptance can nearly flatline. But here's the distinction that matters: that's a performance loss, not a health loss. Warm the pack back up, and the range comes right back. The battery isn't dying in winter. It's just cold.",
+      "visual_type": "cold_weather_comparison",
+      "visual_notes": "Thermometer icon + two bar comparison (LFP -40%, NMC -25%), snow/ice texture background"
+    },
+    {
+      "id": 9,
+      "label": "TIME, NOT JUST KM",
+      "time_range": "4:35-5:00",
+      "narration": "One more myth to clear up: degradation isn't only about driving. Roughly sixty percent of total wear happens just from time passing. Only forty percent comes from actual charge cycles. Leave any LFP pack sitting at a high charge in a hot garage, and it can lose one to two percent a year doing nothing at all.",
+      "visual_type": "pie_chart_aging",
+      "visual_notes": "Pie chart (60% calendar aging vs 40% cycle aging), parked car icon"
+    },
+    {
+      "id": 10,
+      "label": "PROOF",
+      "time_range": "5:00-5:30",
+      "narration": "So what does this look like in the real world? High-mileage rideshare and fleet vehicles — the cars that get fast-charged constantly and never babied — are consistently showing single-digit percentage loss well past one hundred thousand miles, with degradation curves that flatten hard after the first twenty to thirty thousand. At that rate, hitting the four-thousand-cycle limit isn't a question of chemistry — it's a question of decades most private drivers will never log.",
+      "visual_type": "fleet_data_cards",
+      "visual_notes": "Fleet data cards (km + health %), flat degradation line chart"
+    },
+    {
+      "id": 11,
+      "label": "VERDICT",
+      "time_range": "5:30-5:50",
+      "narration": "So — immortal, or marketing? Neither. LFP is honest, stable, and built for high mileage and long calendar life. NMC still wins in extreme cold and raw energy density. There's no perfect battery — only the right battery for how you actually drive.",
+      "visual_type": "comparison_columns",
+      "visual_notes": "Two-column comparison card (LFP advantages / NMC advantages)"
+    },
+    {
+      "id": 12,
+      "label": "OUTRO",
+      "time_range": "5:50-6:00",
+      "narration": "That's the data. No hype, just numbers. If you want the next breakdown before everyone else, subscribe to EVTRIX.",
+      "visual_type": "outro_bumper",
+      "visual_notes": "EVTRIX logo outro, subscribe animation"
+    }
+  ]
+}

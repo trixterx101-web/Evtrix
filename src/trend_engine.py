@@ -351,7 +351,7 @@ class TrendEngine:
         channel = video_data.get("channel", "")
 
         system = (
-            "You are the head writer for Evtrix, a data-driven EV YouTube channel. "
+            "You are the head writer for Evcarix, a data-driven EV YouTube channel. "
             "Style: analytical, fact-first, no hype. Motto: 'No hype. Just numbers.' "
             "Always return valid JSON only — no markdown, no extra text, no code blocks."
         )
@@ -360,14 +360,14 @@ class TrendEngine:
 Channel: {channel}
 Their description: "{description[:300]}"
 
-Write a COMPLETELY ORIGINAL Evtrix script inspired by this TOPIC only.
+Write a COMPLETELY ORIGINAL Evcarix script inspired by this TOPIC only.
 Rules:
 - Do NOT copy their words or structure
 - Data-driven angle: real stats, percentages, kWh numbers
 - Length: 45-59 seconds spoken
 - Start with a shocking stat directly. Do NOT use greetings.
-- End with: "Subscribe to Evtrix for real EV data."
-- Channel Name: ALWAYS use "Evtrix" for pronunciation.
+- End with: "Subscribe to Evcarix for real EV data."
+- Channel Name: ALWAYS use "Evcarix" for pronunciation.
 - English only, USA/Europe/China examples only.
 
 Return ONLY this JSON (no markdown, no backticks):
@@ -412,7 +412,7 @@ Return ONLY this JSON (no markdown, no backticks):
                 "Authorization": f"Bearer {self.openrouter_key}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "https://evtrix.com",
-                "X-Title": "Evtrix Auto-Studio",
+                "X-Title": "Evcarix Auto-Studio",
             }
             # Ücretsiz ve güçlü model
             data = {
@@ -760,7 +760,7 @@ Return ONLY this JSON (no markdown, no backticks):
 
         now = datetime.datetime.now()
         tags = script_data.get("tags", [])
-        for must in ["ev", "electriccar", "Evtrix", "Shorts", "ElectricVehicle"]:
+        for must in ["ev", "electriccar", "Evcarix", "Shorts", "ElectricVehicle"]:
             if must not in tags:
                 tags.append(must)
 
@@ -777,14 +777,14 @@ Return ONLY this JSON (no markdown, no backticks):
             "voice":       random.choice(["male", "female"]),
             "description": (
                 f"{script_data['title']}\n\n"
-                f"Real EV data. No hype. Just numbers. — Evtrix\n\n"
+                f"Real EV data. No hype. Just numbers. — Evcarix\n\n"
                 f"What you'll learn:\n"
                 f"— {script_data.get('hook', script_data['topic'])}\n\n"
                 f"{chr(10).join('#' + t.replace(' ', '') for t in tags[:15])}"
             ),
             "tags":        tags,
             "variation": {
-                "cta_style":  "Subscribe to Evtrix for real EV data.",
+                "cta_style":  "Subscribe to Evcarix for real EV data.",
                 "hook_style": "trend",
                 "emoji_set":  ["⚡", "🔋", "📊"],
             },

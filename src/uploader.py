@@ -31,26 +31,26 @@ class YouTubeUploader:
         # Eğer geçerli kimlik bilgisi yoksa veya süresi dolmuşsa yenile/oluştur
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                print("[Uploader] Token süresi dolmuş, yenileniyor...", flush=True)
+                print("[Uploader] Token surest dolmus, yenileniyor...", flush=True)
                 try:
                     creds.refresh(Request())
-                    print("[Uploader] ✅ Token başarıyla yenilendi.", flush=True)
+                    print("[Uploader] OK Token basariyla yenilendi.", flush=True)
                 except Exception as e:
-                    print(f"[Uploader] ❌ Token yenileme hatası: {e}", flush=True)
+                    print("[Uploader] WARN Token yenileme hatasi: {e}".format(e=e), flush=True)
                     if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                        print("[Uploader] 🔑 Lütfen yerelinizde giriş yapıp yeni token.json içeriğini GitHub Secret'a (YOUTUBE_TOKEN_JSON) ekleyin.", flush=True)
+                        print("[Uploader] CI: Yeni token.json uretin ve GitHub Secret'a ekleyin.", flush=True)
                         return None
                     else:
-                        print("[Uploader] 🔄 Yenileme başarısız, sıfırdan giriş denenecek...", flush=True)
+                        print("[Uploader] Yenileme basarisiz, sifirdan giris denenecek...", flush=True)
                         creds = None # Reset creds to trigger flow below
             
             if not creds or not creds.valid:
                 # CI/CD ortamında tarayıcı açılamaz
                 if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                    print("[Uploader] ❌ Gerekli token.json bulunamadı veya geçersiz!", flush=True)
+                    print("[Uploader] ERROR: Gerekli token.json bulunamadi veya gecersiz!", flush=True)
                     return None
                 
-                print("[Uploader] 🔑 Tarayıcı üzerinden giriş yapılması bekleniyor...", flush=True)
+                print("[Uploader] Tarayici uzerinden giris yapilmasi bekleniyor...", flush=True)
                 flow = InstalledAppFlow.from_client_secrets_file(self.client_secrets_file, self.scopes)
                 creds = flow.run_local_server(port=0)
         
@@ -65,12 +65,12 @@ class YouTubeUploader:
             with open(token_file, "w") as token:
                 token.write(creds.to_json())
         except Exception as e:
-            print(f"[Uploader] ⚠️ token.json yazılamadı: {e}", flush=True)
+            print(f"[Uploader] WARN token.json yazilamadi: {e}", flush=True)
         
         try:
             return build("youtube", "v3", credentials=creds)
         except Exception as e:
-            print(f"[Uploader] ❌ YouTube servisi oluşturulamadı: {e}", flush=True)
+            print(f"[Uploader] ERROR YouTube servisi olusturulamadi: {e}", flush=True)
             return None
 
     def upload_video(self, file_path, title, description, tags, category_id="28", max_retries=3,
@@ -158,9 +158,9 @@ class YouTubeUploader:
                                     }
                                 }
                             ).execute()
-                            print(f"[Uploader] ✅ Playlist'e eklendi: {playlist_name}")
+                            print(f"[Uploader] OK Playlist'e eklendi: {playlist_name}")
                     except Exception as e:
-                        print(f"[Uploader] ⚠️ Playlist hatası (devam ediliyor): {e}")
+                        print(f"[Uploader] WARN Playlist hatasi (devam ediliyor): {e}")
                 
                 # Upload thumbnail if specified
                 if thumbnail_path and video_id and os.path.exists(thumbnail_path):
@@ -200,16 +200,16 @@ class YouTubeUploader:
                 body={
                     "snippet": {
                         "title": playlist_name,
-                        "description": f"Evtrix — {playlist_name}",
+                        "description": f"Evcarix — {playlist_name}",
                     },
                     "status": {"privacyStatus": "public"}
                 }
             ).execute()
             pid = created["id"]
-            print(f"[Uploader] ✅ Yeni playlist oluşturuldu: {playlist_name} ({pid})")
+            print(f"[Uploader] OK Yeni playlist olusturuldu: {playlist_name} ({pid})")
             return pid
         except Exception as e:
-            print(f"[Uploader] ⚠️ Playlist bulunamadı/oluşturulamadı: {e}")
+            print(f"[Uploader] WARN Playlist bulunamadi/olusturulamadi: {e}")
             return None
 
     def post_first_comment(self, video_id: str, topic: str = "") -> bool:
@@ -261,7 +261,7 @@ class YouTubeUploader:
                     media_body=MediaFileUpload(thumbnail_path)
                 )
                 request.execute()
-                print("Thumbnail başarıyla güncellendi!")
+                print("Thumbnail basariyla guncellendi!")
                 return True
             except HttpError as e:
                 status = e.resp.status
@@ -280,7 +280,7 @@ class YouTubeUploader:
                     print(f"  -> {wait} saniye sonra tekrar deneniyor...")
                     time.sleep(wait)
                 else:
-                    print("  -> Tüm denemeler başarısız. Thumbnail yüklenemedi.")
+                    print("  -> Tum denemeler basarisiz. Thumbnail yuklenemedi.")
             except Exception as e:
                 print(f"Thumbnail yükleme hatası (deneme {attempt}): {e}")
                 if attempt < max_retries:

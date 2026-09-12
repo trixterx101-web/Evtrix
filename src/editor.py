@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import logging
+import tempfile
 
 logger = logging.getLogger("Editor")
 
@@ -63,7 +64,7 @@ class AutoEditor:
                     concat_inputs + f"concat=n={len(clips_paths)}:v=1:a=0[vout]"
                 )
 
-            temp_video = f"/tmp/temp_merged_{os.getpid()}.mp4"
+            temp_video = os.path.join(tempfile.gettempdir(), f"temp_merged_{os.getpid()}.mp4")
 
             cmd_v = ["ffmpeg", "-y"] + inputs + [
                 "-filter_complex", fg,

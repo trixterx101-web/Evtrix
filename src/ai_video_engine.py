@@ -1,5 +1,5 @@
 """
-src/ai_video_engine.py — Evtrix Auto-Studio
+src/ai_video_engine.py — Evcarix Auto-Studio
 ===========================================
 v8.6 BRAND OPTIMIZED:
   - Updated watermark to 'EVTRIX' for automated animation clips

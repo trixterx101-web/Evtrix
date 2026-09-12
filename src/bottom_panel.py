@@ -3,6 +3,7 @@ import re
 import subprocess
 import logging
 import textwrap
+import tempfile
 from PIL import Image, ImageDraw, ImageFont
 
 logger = logging.getLogger("BottomPanel")
@@ -182,7 +183,7 @@ def generate_bottom_panel(
     chunks      = _split_into_chunks(subtitle_text, words_per_chunk=5)
     chunk_dur   = safe_dur / len(chunks)   # seconds per chunk
     fps         = 2                         # 2fps — smooth enough, very light
-    frame_dir   = f"/tmp/bp_frames_{os.getpid()}"
+    frame_dir   = os.path.join(tempfile.gettempdir(), f"bp_frames_{os.getpid()}")
     os.makedirs(frame_dir, exist_ok=True)
 
     try:

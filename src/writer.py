@@ -1,8 +1,8 @@
 """
-src/writer.py — Evtrix Auto-Studio
+src/writer.py — Evcarix Auto-Studio
 ====================================
 v9.0 EVTRIX OPTIMIZED:
-  - Brand name standardized to 'Evtrix' everywhere
+  - Brand name standardized to 'Evcarix' everywhere
   - Groq (Primary) / OpenRouter (Fallback)
   - Dynamic Title selection between Fact and Curiosity/Question
   - #Shorts added to description (YouTube Shorts algorithm)
@@ -161,14 +161,14 @@ def _llm_chain(prompt: str, fallback: str = "") -> str:
     return fallback
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PUBLIC API v9.0 (Evtrix Optimized)
+# PUBLIC API v9.0 (Evcarix Optimized)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
     """Tek bir LLM çağrısı ile tüm SEO metadatayı (Title, Tags, Hook, SEO Description) üretir."""
     brand_style = (
         "Style: Data-driven, analytical, no-hype. Language: ALWAYS US ENGLISH. Tone: Global Professional. "
-        "Identity: Evtrix — The #1 Electric Vehicle Data Channel. Motto: 'No hype. Just numbers.'"
+        "Identity: Evcarix — The #1 Electric Vehicle Data Channel. Motto: 'No hype. Just numbers.'"
     )
 
     if is_long:
@@ -221,7 +221,7 @@ def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
     return {
         "title_a": f"{topic.upper()} — The Real Numbers",
         "title_b": f"The Truth About {topic}?",
-        "tags": ["ev", "electric car", "Evtrix", "Shorts", "EVShorts", "ElectricVehicles"],
+        "tags": ["ev", "electric car", "Evcarix", "Shorts", "EVShorts", "ElectricVehicles"],
         "hook_a": "The truth about EVs.",
         "hook_b": "Shocking EV numbers.",
         "seo_description": f"Exploring the latest data and trends behind {topic}. We break down the key numbers and what they mean for the future of electric vehicles."
@@ -253,7 +253,7 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
             "'But here's where it gets really interesting...' or 'Wait — this next number changes everything.' "
             "This keeps viewers watching past the midpoint (critical for watch time). "
             "END with a direct engagement CTA: 'What surprised you most? Drop it in the comments below.' "
-            "Then: 'Subscribe to Evtrix — new EV data every week. Hit the bell so you never miss it.'"
+            "Then: 'Subscribe to Evcarix — new EV data every week. Hit the bell so you never miss it.'"
         )
         prompt = (
             f"Write a professional {duration_s}-second deep-dive EV script (~{words} words) about: {topic}.\n"
@@ -277,7 +277,7 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
             "At the 60% mark, add ONE curiosity bridge line like 'But the real number is even more surprising...' "
             "This prevents viewers from swiping away early. "
             "End with a direct engagement line: 'Comment your thoughts below.' "
-            "Then: 'Subscribe to Evtrix for real EV data.'"
+            "Then: 'Subscribe to Evcarix for real EV data.'"
         )
         prompt = (
             f"Write a viral {duration_s}-second YouTube Shorts script (~{words} words) about: {topic}.\n"
@@ -288,7 +288,7 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
             "Output ONLY the script text."
         )
 
-    script = _llm_chain(prompt, fallback=f"{hook} The data on {topic} reveals trends most EV owners never see. Subscribe to Evtrix for more.")
+    script = _llm_chain(prompt, fallback=f"{hook} The data on {topic} reveals trends most EV owners never see. Subscribe to Evcarix for more.")
     return {"script": script, "voice": "male" if is_long else "female"}
 
 
@@ -318,7 +318,7 @@ class CreativeWriter:
         desc = (
             f"⚡ {hook_a}\n\n"
             f"{seo_desc}\n\n"
-            f"In this short, Evtrix breaks down the real numbers behind {topic} — "
+            f"In this short, Evcarix breaks down the real numbers behind {topic} — "
             f"no opinion, no hype, just verified data from global industry reports. "
             f"Whether you're an EV owner, considering your first electric vehicle, or just following "
             f"clean energy trends, this data directly impacts your decisions.\n\n"
@@ -332,7 +332,7 @@ class CreativeWriter:
             f"━━━━━━━━━━━━━━━━━━━━━━\n"
             f"🔔 ABOUT EVTRIX\n"
             f"━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"Evtrix is an independent EV data channel covering electric vehicles, battery technology, "
+            f"Evcarix is an independent EV data channel covering electric vehicles, battery technology, "
             f"autonomous driving, and the future of clean transport. "
             f"We publish data-driven content every week — no sponsored bias, no hype.\n\n"
             f"❓ What surprised you most about {topic}? Comment below — we read every reply.\n\n"
@@ -366,7 +366,7 @@ class CreativeWriter:
 
         hashtag_tags = [f"#{t.replace(' ', '')}" for t in final_tags[:12]]
 
-        seo_desc   = meta.get('seo_description', f'A deep-dive data analysis of {topic} by Evtrix.')
+        seo_desc   = meta.get('seo_description', f'A deep-dive data analysis of {topic} by Evcarix.')
         hook_a     = meta.get('hook_a', 'Expert EV analysis.')
         hook_b     = meta.get('hook_b', 'Real numbers, real impact.')
         keywords   = meta.get('keywords', [topic, 'electric vehicle', 'EV data'])
@@ -375,7 +375,7 @@ class CreativeWriter:
         desc = (
             f"🚀 {hook_a}\n\n"
             f"{seo_desc}\n\n"
-            f"In this deep-dive, Evtrix breaks down the real data behind {topic}. "
+            f"In this deep-dive, Evcarix breaks down the real data behind {topic}. "
             f"We analyze verified numbers from global EV industry reports, manufacturer data, "
             f"and independent research — covering markets in the USA, Europe, and China. "
             f"If you're an EV enthusiast, buyer, or investor, this analysis gives you the edge "
@@ -398,7 +398,7 @@ class CreativeWriter:
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"🔔 ABOUT EVTRIX\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"Evtrix is an independent EV data and analysis channel. We cover electric vehicles, "
+            f"Evcarix is an independent EV data and analysis channel. We cover electric vehicles, "
             f"battery technology, autonomous driving systems, EV charging infrastructure, and the "
             f"future of sustainable transport. Our content is 100% data-driven — no sponsored "
             f"opinions, no manufacturer bias. Subscribe for new analysis every week.\n\n"
@@ -411,7 +411,7 @@ class CreativeWriter:
 
         chosen_title = random.choice([meta.get('title_a'), meta.get('title_b')])
         if not chosen_title:
-            chosen_title = meta.get('title', f"{topic} — EV Data Deep Dive | Evtrix")
+            chosen_title = meta.get('title', f"{topic} — EV Data Deep Dive | Evcarix")
 
         return {
             "title": chosen_title,
@@ -426,7 +426,7 @@ class CreativeWriter:
     def _clean_tags(self, tags: list) -> list:
         """Tags limitine ve kaliteye dikkat eder. YouTube SEO için optimize edilmiş."""
         must_have = [
-            "Evtrix", "Electric Vehicle", "EV", "Electric Car",
+            "Evcarix", "Electric Vehicle", "EV", "Electric Car",
             "EV Data", "Battery Technology", "Shorts", "EVShorts",
             "ElectricVehicles", "CleanEnergy"
         ]

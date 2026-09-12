@@ -1,5 +1,5 @@
 """
-topic_queue.py — Evtrix Akıllı Konu Kuyruğu
+topic_queue.py — Evcarix Akıllı Konu Kuyruğu
 ============================================
 Birden fazla kaynaktan trend konular toplar, izleyici ilgisine göre puanlar
 ve topic_queue.json dosyasına sıralar. Her video üretiminde sıradaki konu alınır.

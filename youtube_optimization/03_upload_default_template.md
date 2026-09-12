@@ -44,7 +44,7 @@ Example: "We tested the AMR robot system on a real EV delivery route to see if i
 ## 🏷️ VIDEO TAG ŞABLONU (Her Videoda Kullan)
 Tags kısmına ekle (virgülle ayır):
 
-electric vehicles, EV review, electric cars, EV range test, battery technology, AI technology, EV tech, Tesla, BYD, Rivian, Lucid Motors, electric car range, EV battery life, fast charging EV, EV charging cost, electric mobility, AI robots, autonomous vehicles, electric future, EV trends, smart transportation, robot technology, tech news, Evtrix, EV comparison, wireless EV charging, AMR robots, EV winter range, battery degradation, clean energy
+electric vehicles, EV review, electric cars, EV range test, battery technology, AI technology, EV tech, Tesla, BYD, Rivian, Lucid Motors, electric car range, EV battery life, fast charging EV, EV charging cost, electric mobility, AI robots, autonomous vehicles, electric future, EV trends, smart transportation, robot technology, tech news, Evcarix, EV comparison, wireless EV charging, AMR robots, EV winter range, battery degradation, clean energy
 
 ---
 
