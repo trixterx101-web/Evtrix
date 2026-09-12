@@ -118,7 +118,7 @@ Return ONLY the title. No quotes. No explanation."""
             try:
                 client = genai.Client(api_key=key)
                 resp = client.models.generate_content(
-                    model="gemini-2.0-flash-lite",
+                    model="gemini-2.0-flash",
                     contents=prompt
                 )
                 if resp and resp.text:

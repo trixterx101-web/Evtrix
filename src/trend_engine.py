@@ -847,7 +847,7 @@ Return ONLY this JSON (no markdown, no backticks):
                 try:
                     client = genai.Client(api_key=key)
                     resp = client.models.generate_content(
-                        model='gemini-2.0-flash-lite',
+                        model='gemini-2.0-flash',
                         contents=f"{system_msg}\n\n{prompt_user}"
                     )
                     selected = resp.text.strip()
