@@ -117,7 +117,7 @@ Return ONLY the title. No quotes. No explanation."""
         for key in keys:
             try:
                 genai.configure(api_key=key)
-                model    = genai.GenerativeModel("gemini-2.0-flash-lite")
+                model    = genai.GenerativeModel("gemini-2.5-flash-lite-preview-06-17")
                 response = model.generate_content(prompt)
                 break  # Başarılıysa dur
             except Exception as key_err:

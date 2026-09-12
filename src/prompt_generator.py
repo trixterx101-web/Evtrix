@@ -64,7 +64,7 @@ Example format:
 Max 4 words per query. No adjectives like 'cinematic', 'epic', 'stunning'. Return ONLY a JSON array of strings."""
             
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 contents=prompt_text
             )
             if response and response.text:

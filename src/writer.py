@@ -117,7 +117,7 @@ def call_openai(prompt: str, model: str = "gpt-4o-mini") -> Optional[str]:
     except: pass
     return None
 
-def call_gemini(prompt: str, model: str = "gemini-2.0-flash") -> Optional[str]:
+def call_gemini(prompt: str, model: str = "gemini-2.5-flash") -> Optional[str]:
     if not ENABLE_GEMINI: return None
     avail = _available_keys(_GEMINI_KEYS)
     if not avail: return None
