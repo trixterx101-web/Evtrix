@@ -22,19 +22,36 @@ class VoiceEngine:
 
     async def _generate_edge(self, text: str, output_path: str, voice_type: str = "female"):
         import edge_tts
-        
+        import os
+
+        # Guard: boş metin → TTS çöküyor
+        text = (text or "").strip()
+        if not text:
+            logger.error("[VoiceEngine] TTS text is empty — cannot generate audio")
+            return None
+
         voice = "en-US-BrianNeural" if voice_type == "male" else "en-US-JennyNeural"
         communicate = edge_tts.Communicate(text, voice)
         
+        os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+
         word_timings = []
         try:
             # Use save() — much more reliable than stream() for avoiding hangs
-            await asyncio.wait_for(communicate.save(output_path), timeout=60)
+            await asyncio.wait_for(communicate.save(output_path), timeout=120)
             logger.info(f"[VoiceEngine] Audio saved to {output_path}")
         except asyncio.TimeoutError:
-            logger.error("[VoiceEngine] TTS timed out after 60s")
+            logger.error("[VoiceEngine] TTS timed out after 120s")
+            return None
         except Exception as e:
             logger.error(f"TTS Error: {e}")
+            return None
+
+        # Dosya geçerlilik kontrolü
+        if not os.path.exists(output_path) or os.path.getsize(output_path) < 1024:
+            logger.error(f"[VoiceEngine] TTS output invalid or empty: {output_path} "
+                         f"(size={os.path.getsize(output_path) if os.path.exists(output_path) else 0})")
+            return None
 
         # Süreyi hesapla
         duration = await self._get_duration(output_path)

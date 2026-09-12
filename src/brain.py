@@ -77,7 +77,7 @@ def _improve_title_with_gemini(topic: str, raw_title: str) -> str:
     raw_title zayıfsa Gemini yeniden üretir.
     """
     try:
-        import google.generativeai as genai
+        from google import genai
 
         keys = [k for k in [
             os.getenv("GEMINI_API_KEY"),
@@ -116,10 +116,14 @@ Return ONLY the title. No quotes. No explanation."""
         response = None
         for key in keys:
             try:
-                genai.configure(api_key=key)
-                model    = genai.GenerativeModel("gemini-2.5-flash")
-                response = model.generate_content(prompt)
-                break  # Başarılıysa dur
+                client = genai.Client(api_key=key)
+                resp = client.models.generate_content(
+                    model="gemini-2.0-flash-lite",
+                    contents=prompt
+                )
+                if resp and resp.text:
+                    response = resp
+                    break  # Başarılıysa dur
             except Exception as key_err:
                 err_str = str(key_err)
                 if "429" in err_str or "quota" in err_str.lower():
