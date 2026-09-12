@@ -24,7 +24,7 @@ logger = logging.getLogger("Writer")
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
 
-ENABLE_GEMINI = False
+ENABLE_GEMINI = True
 PRIMARY_LLM = "groq"
 
 _PLACEHOLDERS = {"", "YOUR_NEW_GEMINI_KEY_HERE", "YOUR_KEY_HERE", "PLACEHOLDER", "none", "None"}
@@ -245,41 +245,80 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
     hook = random.choice(HOOK_STARTERS).replace("{topic}", topic)
 
     if is_long:
-        # 3-4 dakika = ~390-520 kelime (130 kelime/dakika TTS hızı)
-        min_words = max(words, 400)
-        tone = (
-            "Style: No hype. Just numbers. Fact-first. Language: MANDATORY US ENGLISH. "
-            "CRITICAL RULE: NEVER use 'Welcome to', 'Hello', 'Hey', 'In this video'. "
-            f"Start IMMEDIATELY with this hook sentence: '{hook}' then follow with a shocking statistic. "
-            "MID-VIDEO RULE: At the halfway point, add a 'pattern interrupt' — say something like "
-            "'But here's where it gets really interesting...' or 'Wait — this next number changes everything.' "
-            "This keeps viewers watching past the midpoint (critical for watch time). "
-            "END with a direct engagement CTA: 'What surprised you most? Drop it in the comments below.' "
-            "Then: 'Subscribe to Evcarix — new EV data every week. Hit the bell so you never miss it.'"
-        )
-        prompt = (
-            f"Write a professional {duration_s}-second deep-dive EV script (MINIMUM {min_words} words, target {words} words) about: {topic}.\n"
-            f"{tone}\n"
-            "Structure:\n"
-            "1. HOOK (0-15s): Start with the provided hook + one shocking statistic.\n"
-            "2. DATA ANALYSIS (15s-50%): 3-4 key data points with global examples (USA, Europe, China).\n"
-            "3. PATTERN INTERRUPT (midpoint): Re-engage viewer with a surprising twist or reframe.\n"
-            "4. EXPERT INSIGHT (50%-85%): What experts/industry leaders say. Specific quotes or reports.\n"
-            "5. CONCLUSION + CTA (last 15%): Verdict + comment question + subscribe ask.\n"
-            "CRITICAL: Every sentence needs a number, %, $, kWh, or km value. No vague statements.\n"
-            "CRITICAL: US ENGLISH ONLY. Global perspective.\n"
-            f"CRITICAL: Script MUST be at least {min_words} words long. This is a 3-4 minute video, not a short.\n"
-            "Output ONLY the script text. No headings, no labels, just the spoken words."
-        )
-        # Uzun video için yüksek token limiti ile üret + minimum kelime kontrolü
-        script_text = _llm_chain(prompt, fallback=f"{hook} The data on {topic} reveals trends most EV owners never see. Subscribe to Evcarix for more.", max_tokens=4000)
-        # Minimum kelime kontrolü — kısa geldiyse bir kez daha dene
-        if len(script_text.split()) < min_words:
-            logger.warning(f"[Writer] Script çok kısa ({len(script_text.split())} kelime), yeniden üretiliyor...")
-            print(f"[Writer] ⚠️ Script çok kısa ({len(script_text.split())} kelime < {min_words}), retry...", flush=True)
-            script_text2 = _llm_chain(prompt, fallback=script_text, max_tokens=4000)
-            if len(script_text2.split()) > len(script_text.split()):
-                script_text = script_text2
+        # Uzun video: ~540s = ~1296 kelime (130 kelime/dk TTS)
+        # Groq tek seferde kesiyor — scripti 5 bölümde üret, birleştir
+        min_words = max(words, 900)
+
+        sections = [
+            (
+                "HOOK + INTRO (first 60 seconds)",
+                f"Write ONLY the opening 60-second section of an EV deep-dive video about: '{topic}'.\n"
+                f"Start IMMEDIATELY with: '{hook}' — then ONE shocking statistic with real numbers.\n"
+                f"Then briefly preview what the viewer will learn. NO greetings. NO 'In this video'. US ENGLISH ONLY.\n"
+                f"Output ~130-150 words of spoken script text ONLY. No headings."
+            ),
+            (
+                "DATA ANALYSIS section (seconds 60-180)",
+                f"Continue an EV deep-dive video script about: '{topic}'.\n"
+                f"Write ONLY the DATA ANALYSIS section (roughly 2 minutes of spoken content).\n"
+                f"Include: 3-4 concrete data points with real numbers (%, $, kWh, km), USA/Europe/China examples.\n"
+                f"Every sentence must contain at least one specific number or stat. US ENGLISH ONLY.\n"
+                f"Output ~260-280 words of spoken script text ONLY. No headings."
+            ),
+            (
+                "PATTERN INTERRUPT + EXPERT INSIGHT (seconds 180-360)",
+                f"Continue an EV deep-dive video script about: '{topic}'.\n"
+                f"Write ONLY the middle section (roughly 3 minutes of spoken content).\n"
+                f"Start with a pattern interrupt line like 'But here is where it gets really interesting...' or 'Wait — this next number changes everything.'\n"
+                f"Then provide expert insight: what industry leaders say, specific data from reports (IEA, BloombergNEF, etc.).\n"
+                f"Include surprising findings that reframe the topic. US ENGLISH ONLY.\n"
+                f"Output ~390-420 words of spoken script text ONLY. No headings."
+            ),
+            (
+                "IMPLICATIONS + VERDICT (seconds 360-480)",
+                f"Continue an EV deep-dive video script about: '{topic}'.\n"
+                f"Write ONLY the implications and verdict section (roughly 2 minutes of spoken content).\n"
+                f"Cover: what this data means for EV buyers, investors, and the industry in 2026.\n"
+                f"Give a clear verdict with specific takeaways. Include numbers. US ENGLISH ONLY.\n"
+                f"Output ~260-280 words of spoken script text ONLY. No headings."
+            ),
+            (
+                "CONCLUSION + CTA (final 60 seconds)",
+                f"Write ONLY the closing section of an EV deep-dive video about: '{topic}'.\n"
+                f"Summarize the 3 most surprising data points. Then ask: 'What surprised you most? Drop it in the comments below.'\n"
+                f"End with: 'Subscribe to Evcarix — new EV data every week. Hit the bell so you never miss it.'\n"
+                f"US ENGLISH ONLY. Output ~130-150 words of spoken script text ONLY. No headings."
+            ),
+        ]
+
+        parts = []
+        for section_name, section_prompt in sections:
+            print(f"[Writer] 📝 Bölüm üretiliyor: {section_name}...", flush=True)
+            part = _llm_chain(section_prompt, fallback="", max_tokens=800)
+            if part and len(part.split()) > 20:
+                parts.append(part.strip())
+            else:
+                # Bölüm başarısız → Gemini ile tekrar dene
+                if ENABLE_GEMINI:
+                    part2 = call_gemini(section_prompt)
+                    if part2 and len(part2.split()) > 20:
+                        parts.append(part2.strip())
+
+        script_text = "\n\n".join(parts)
+
+        # Yeterince uzun değilse ek bölümler ekle
+        current_words = len(script_text.split())
+        if current_words < min_words:
+            print(f"[Writer] ⚠️ Script kısa ({current_words} kelime), ek içerik ekleniyor...", flush=True)
+            extra_prompt = (
+                f"Write an additional data-rich paragraph (200-250 words) expanding on: '{topic}'.\n"
+                f"Include specific numbers, real-world examples from USA/Europe/China.\n"
+                f"US ENGLISH ONLY. Output spoken script text ONLY."
+            )
+            extra = _llm_chain(extra_prompt, fallback="", max_tokens=800)
+            if extra and len(extra.split()) > 30:
+                script_text = script_text + "\n\n" + extra.strip()
+
         print(f"[Writer] ✅ Script uzunluğu: {len(script_text.split())} kelime (~{len(script_text.split())//130:.1f} dk)", flush=True)
         return {"script": script_text, "voice": "male"}
     else:
