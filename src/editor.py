@@ -14,7 +14,8 @@ class AutoEditor:
     """
 
     def assemble(self, clips_paths, audio_path, output_path,
-                 is_short=True, title=None, topic=None, words_with_times=None):
+                 is_short=True, title=None, topic=None, words_with_times=None,
+                 subtitle_chunks=None):   # ← Real timing chunks from VoiceEngine
         temp_filter_file = None
         temp_video = None
         try:
@@ -87,7 +88,8 @@ class AutoEditor:
 
             # Long video: burn subtitles on video. Short: no subtitles (panel handles it)
             if not is_short and title:
-                subtitle_filters = self._build_subtitles(title, duration, W, H)
+                subtitle_filters = self._build_subtitles(title, duration, W, H,
+                                                         subtitle_chunks=subtitle_chunks)
                 subtitle_chain   = ",".join(subtitle_filters) if subtitle_filters else ""
             else:
                 subtitle_chain = ""
@@ -152,9 +154,40 @@ class AutoEditor:
                 try: os.remove(temp_video)
                 except: pass
 
-    def _build_subtitles(self, text: str, duration: float, W: int, H: int) -> list:
-        """Sentence-level subtitle burn-in for long video only."""
-        # Strip ALL special chars that break FFmpeg drawtext
+    def _build_subtitles(self, text: str, duration: float, W: int, H: int,
+                         subtitle_chunks: list = None) -> list:
+        """
+        Build FFmpeg drawtext subtitle filters.
+        - If real subtitle_chunks provided (from VoiceEngine), use their exact start/end times.
+        - Otherwise fall back to equal-duration splitting of the title text.
+        """
+        font_size = 52
+        y_pos     = H - 110
+
+        # ── Real timing path ─────────────────────────────────────────────────
+        if subtitle_chunks:
+            filters = []
+            for ch in subtitle_chunks:
+                raw   = ch.get("text", "")
+                clean = re.sub(r"[^A-Z0-9 ]", " ", raw.upper()).strip()
+                clean = re.sub(r" +", " ", clean)[:40]
+                if not clean:
+                    continue
+                t0 = round(ch.get("start", 0), 3)
+                t1 = round(ch.get("end",   0) - 0.04, 3)
+                if t1 <= t0:
+                    t1 = round(t0 + 0.1, 3)
+                filters.append(
+                    f"drawtext=text='{clean}'"
+                    f":fontsize={font_size}:fontcolor=white"
+                    f":x=(w-tw)/2:y={y_pos}"
+                    f":shadowcolor=black@0.95:shadowx=3:shadowy=3"
+                    f":enable='between(t\\,{t0}\\,{t1})'"
+                )
+            logger.info(f"[Editor] Built {len(filters)} real-timing subtitle filters")
+            return filters
+
+        # ── Fallback: equal-duration split ───────────────────────────────────
         clean = re.sub(r"[^A-Z0-9 ]", " ", text.upper()).strip()
         clean = re.sub(r" +", " ", clean)
 
@@ -172,16 +205,12 @@ class AutoEditor:
         if not chunks:
             return []
 
-        font_size = 52
-        y_pos     = H - 110
         chunk_dur = duration / len(chunks)
-
-        filters = []
+        filters   = []
         for i, chunk_text in enumerate(chunks):
             t0   = round(i * chunk_dur, 3)
             t1   = round((i + 1) * chunk_dur - 0.08, 3)
-            # Only alphanumeric + space — fully safe for FFmpeg
-            safe = chunk_text[:40]  # max length guard
+            safe = chunk_text[:40]
             filters.append(
                 f"drawtext=text='{safe}'"
                 f":fontsize={font_size}:fontcolor=white"

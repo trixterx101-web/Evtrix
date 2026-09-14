@@ -172,38 +172,67 @@ def generate_bottom_panel(
     subtitle_text: str,
     duration: float,
     output_path: str,
-    panel_size: tuple = (1080, 480)
+    panel_size: tuple = (1080, 480),
+    subtitle_chunks: list = None,          # ← Real timing data from VoiceEngine
 ) -> str | None:
+    """
+    Generate the animated bottom panel video.
+
+    If `subtitle_chunks` is provided (list of dicts with 'text', 'start', 'end'),
+    each frame is shown exactly during the time window the TTS is speaking that chunk.
+    Otherwise falls back to equal-duration splitting.
+    """
     W, H = panel_size
     out_dir = os.path.dirname(output_path)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
-    safe_dur    = max(duration, 1.0)
-    chunks      = _split_into_chunks(subtitle_text, words_per_chunk=5)
-    chunk_dur   = safe_dur / len(chunks)   # seconds per chunk
-    fps         = 2                         # 2fps — smooth enough, very light
-    frame_dir   = os.path.join(tempfile.gettempdir(), f"bp_frames_{os.getpid()}")
+    safe_dur  = max(duration, 1.0)
+    fps       = 2                          # 2 fps — smooth enough, very lightweight
+    frame_dir = os.path.join(tempfile.gettempdir(), f"bp_frames_{os.getpid()}")
     os.makedirs(frame_dir, exist_ok=True)
 
+    # ── Build frame list with accurate timings ────────────────────────────────
+    if subtitle_chunks:
+        # Use real speech boundaries supplied by VoiceEngine
+        frame_data = []
+        for ci, chunk in enumerate(subtitle_chunks):
+            ch_dur = max(0.05, chunk.get("end", 0) - chunk.get("start", 0))
+            frame_data.append({
+                "text":     chunk["text"],
+                "start":    chunk.get("start", 0),
+                "duration": ch_dur,
+            })
+        logger.info(f"[BottomPanel] Using {len(frame_data)} real-timing chunks")
+    else:
+        # Fallback: equal-duration split of raw script text
+        chunks    = _split_into_chunks(subtitle_text, words_per_chunk=5)
+        chunk_dur = safe_dur / len(chunks)
+        frame_data = [
+            {"text": c, "start": i * chunk_dur, "duration": chunk_dur}
+            for i, c in enumerate(chunks)
+        ]
+        logger.info(f"[BottomPanel] Using {len(frame_data)} equal-duration chunks (fallback)")
+
     try:
-        # Generate one frame per chunk (shown for chunk_dur seconds each)
+        # Generate one JPEG frame per chunk
         frame_paths = []
-        for ci, chunk in enumerate(chunks):
-            progress   = (ci + 0.5) / len(chunks)
-            frame_img  = _draw_frame(topic, chunk, W, H, progress)
+        total_chunks = len(frame_data)
+        for ci, fd in enumerate(frame_data):
+            progress   = (ci + 0.5) / total_chunks
+            frame_img  = _draw_frame(topic, fd["text"], W, H, progress)
             frame_path = os.path.join(frame_dir, f"frame_{ci:04d}.jpg")
             frame_img.save(frame_path, "JPEG", quality=90)
-            frame_paths.append((frame_path, chunk_dur))
+            frame_paths.append((frame_path, fd["duration"]))
 
-        # Build a video from frames using ffmpeg concat demuxer
+        # Build ffmpeg concat demuxer list
         list_path = os.path.join(frame_dir, "frames.txt")
         with open(list_path, "w", encoding="utf-8") as f:
             for fpath, fdur in frame_paths:
                 clean_fpath = fpath.replace("\\", "/")
                 f.write(f"file '{clean_fpath}'\n")
-                f.write(f"duration {fdur:.3f}\n")
-            # Repeat last frame once (required by concat demuxer)
+                f.write(f"duration {fdur:.4f}\n")
+            # Repeat last frame (required by concat demuxer)
             last_clean = frame_paths[-1][0].replace("\\", "/")
             f.write(f"file '{last_clean}'\n")
 

@@ -189,7 +189,8 @@ class EvcarixOrchestrator:
                             tags=tags,
                             playlist_name="Short Video",
                             thumbnail_path=thumbnail_path,
-                            topic=topic
+                            topic=topic,
+                            is_long=False
                         )
                         print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                         print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)
@@ -247,12 +248,15 @@ class EvcarixOrchestrator:
         
         from src.bottom_panel import generate_bottom_panel
         bottom_panel_path = f"assets/panels/bottom_{ts}.mp4"
+        # Pass real subtitle chunks (SentenceBoundary timings) from TTS engine
+        subtitle_chunks = voice_data.get("subtitle_chunks") or None
         bottom_res = generate_bottom_panel(
             topic=topic_key,
             subtitle_text=script,
             duration=duration,
             output_path=bottom_panel_path,
-            panel_size=(1080, 480)
+            panel_size=(1080, 480),
+            subtitle_chunks=subtitle_chunks,   # ← Real speech timings
         )
         
         if not bottom_res:
@@ -313,7 +317,8 @@ class EvcarixOrchestrator:
                     tags=tags,
                     playlist_name="Short Video",
                     thumbnail_path=thumbnail_path,
-                    topic=topic
+                    topic=topic,
+                    is_long=False
                 )
                 print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                 print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)
@@ -425,12 +430,14 @@ class EvcarixOrchestrator:
         final_video_path = os.path.join("output", output_filename)
         os.makedirs("output", exist_ok=True)
 
+        subtitle_chunks_long = voice_data.get("subtitle_chunks") or None
         assembled = self.editor.assemble(
             clips_paths=top_video_list,
             audio_path=audio_path,
             output_path=final_video_path,
             is_short=False,
             title=script,
+            subtitle_chunks=subtitle_chunks_long,   # ← Real speech timings
         )
         if not assembled or not os.path.exists(final_video_path):
             raise RuntimeError("[Main] Montaj çıktısı bulunamadı.")
@@ -464,7 +471,8 @@ class EvcarixOrchestrator:
                     tags=tags,
                     playlist_name="EV Data Reports",
                     thumbnail_path=thumbnail_path,
-                    topic=topic
+                    topic=topic,
+                    is_long=True
                 )
                 print(f"      ✅ Yüklendi! Video ID: {video_id}", flush=True)
                 print(f"      🔗 https://www.youtube.com/watch?v={video_id}", flush=True)
@@ -499,7 +507,7 @@ if __name__ == "__main__":
     content_mode  = os.environ.get("CONTENT_MODE", "auto").strip().lower()
     is_long       = video_type == "long" or upload_slot == "SUNDAY_LONG"
 
-    # ── Pazartesi: Sadece konu kuyruğunu yenile ──────────────────────
+    # ── Konu kuyruğunu yenileme modu (manuel/tetikleme) ──────────────────────
     if content_mode == "refresh_queue" or video_type == "none":
         log(">>> [SYSTEM] Konu Kuyruğu Yenileme Modu — Video üretilmeyecek")
         try:
