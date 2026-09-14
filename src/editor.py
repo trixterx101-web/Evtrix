@@ -15,7 +15,7 @@ class AutoEditor:
 
     def assemble(self, clips_paths, audio_path, output_path,
                  is_short=True, title=None, topic=None, words_with_times=None,
-                 subtitle_chunks=None):   # ← Real timing chunks from VoiceEngine
+                 subtitle_chunks=None):   # <- Real timing chunks from VoiceEngine
         temp_filter_file = None
         temp_video = None
         try:
@@ -145,7 +145,7 @@ class AutoEditor:
                 logger.error(f"[Editor] Pass 2 failed: {r2.stderr[-400:]}")
                 return False
 
-            logger.info(f"[Editor] ✅ Done: {output_path}")
+            logger.info(f"[Editor] Done: {output_path}")
             return output_path
 
         except Exception as e:
@@ -159,25 +159,73 @@ class AutoEditor:
                 try: os.remove(temp_video)
                 except: pass
 
+    # ------------------------------------------------------------------
+    # Subtitle helpers
+    # ------------------------------------------------------------------
+
+    def _wrap_words(self, txt: str, max_chars: int) -> list:
+        """Word-wrap txt into lines of at most max_chars characters (max 2 rows)."""
+        words  = txt.split()
+        rows   = []
+        row    = []
+        length = 0
+        for w in words:
+            need = (1 if row else 0) + len(w)
+            if length + need > max_chars and row:
+                rows.append(" ".join(row))
+                row    = [w]
+                length = len(w)
+            else:
+                row.append(w)
+                length += need
+        if row:
+            rows.append(" ".join(row))
+        return rows[:2]   # cap at 2 rows
+
+    def _safe_text(self, s: str) -> str:
+        """Strip chars that break FFmpeg drawtext argument parsing."""
+        return s.replace("'", "").replace(":", " ").replace("\\", "")
+
+    def _drawtext_filters(self, rows: list, t0: float, t1: float,
+                          font_size: int, y_base: int, line_height: int,
+                          box_flag: str) -> list:
+        """Produce one drawtext filter per row, stacked vertically."""
+        result = []
+        for ri, row_text in enumerate(rows):
+            st = self._safe_text(row_text)
+            if not st:
+                continue
+            y = y_base + ri * line_height
+            result.append(
+                f"drawtext=text='{st}'"
+                f":fontsize={font_size}:fontcolor=white"
+                f":x=(w-tw)/2:y={y}"
+                f":shadowcolor=black@0.95:shadowx=3:shadowy=3"
+                f"{box_flag}"
+                f":enable='between(t\\,{t0}\\,{t1})'"
+            )
+        return result
+
     def _build_subtitles(self, text: str, duration: float, W: int, H: int,
                          subtitle_chunks: list = None,
                          is_short: bool = False) -> list:
         """
-        Build FFmpeg drawtext subtitle filters.
-        - Short: karaoke-style, large font, semi-transparent box, lower-third position.
-        - Long:  standard subtitle near bottom.
-        - If real subtitle_chunks provided (from VoiceEngine), use their exact start/end times.
-        - Otherwise fall back to equal-duration splitting of the title text.
+        Build FFmpeg drawtext subtitle filters with automatic word-wrap.
+        Long lines are split into at most 2 rows so text never overflows the screen.
         """
         if is_short:
-            # Karaoke style for Shorts: big, bold, centred at ~80% height
-            font_size = 72
-            y_pos     = int(H * 0.80)   # ~80% down the 1920px frame
-            box_flag  = ":box=1:boxcolor=black@0.55:boxborderw=18"
+            # Karaoke style: 64px font, ~18 chars/row safe on 1080px wide screen
+            font_size   = 64
+            max_chars   = 18
+            line_height = 78
+            y_base      = int(H * 0.78)
+            box_flag    = ":box=1:boxcolor=black@0.60:boxborderw=16"
         else:
-            font_size = 52
-            y_pos     = H - 110
-            box_flag  = ":box=1:boxcolor=black@0.40:boxborderw=10"
+            font_size   = 52
+            max_chars   = 28
+            line_height = 62
+            y_base      = H - 140
+            box_flag    = ":box=1:boxcolor=black@0.40:boxborderw=10"
 
         # ── Real timing path ─────────────────────────────────────────────────
         if subtitle_chunks:
@@ -185,55 +233,48 @@ class AutoEditor:
             for ch in subtitle_chunks:
                 raw   = ch.get("text", "")
                 clean = re.sub(r"[^A-Z0-9 ]", " ", raw.upper()).strip()
-                clean = re.sub(r" +", " ", clean)[:40]
+                clean = re.sub(r" +", " ", clean)
                 if not clean:
                     continue
                 t0 = round(ch.get("start", 0), 3)
                 t1 = round(ch.get("end",   0) - 0.04, 3)
                 if t1 <= t0:
                     t1 = round(t0 + 0.1, 3)
-                filters.append(
-                    f"drawtext=text='{clean}'"
-                    f":fontsize={font_size}:fontcolor=white"
-                    f":x=(w-tw)/2:y={y_pos}"
-                    f":shadowcolor=black@0.95:shadowx=3:shadowy=3"
-                    f"{box_flag}"
-                    f":enable='between(t\\,{t0}\\,{t1})'"
+                rows = self._wrap_words(clean, max_chars)
+                filters.extend(
+                    self._drawtext_filters(rows, t0, t1,
+                                           font_size, y_base, line_height, box_flag)
                 )
-            logger.info(f"[Editor] Built {len(filters)} real-timing subtitle filters (short={is_short})")
+            logger.info(f"[Editor] Built {len(filters)} subtitle drawtext filters (short={is_short})")
             return filters
 
-        # ── Fallback: equal-duration split ───────────────────────────────────
-        clean = re.sub(r"[^A-Z0-9 ]", " ", text.upper()).strip()
-        clean = re.sub(r" +", " ", clean)
-
+        # ── Fallback: equal-duration split (4 words per chunk) ───────────────
+        clean  = re.sub(r"[^A-Z0-9 ]", " ", text.upper()).strip()
+        clean  = re.sub(r" +", " ", clean)
         words  = clean.split()
-        chunks = []
-        chunk  = []
+
+        raw_chunks = []
+        chunk = []
         for w in words:
             chunk.append(w)
-            if len(chunk) >= 6:
-                chunks.append(" ".join(chunk))
+            if len(chunk) >= 4:
+                raw_chunks.append(" ".join(chunk))
                 chunk = []
         if chunk:
-            chunks.append(" ".join(chunk))
+            raw_chunks.append(" ".join(chunk))
 
-        if not chunks:
+        if not raw_chunks:
             return []
 
-        chunk_dur = duration / len(chunks)
+        chunk_dur = duration / len(raw_chunks)
         filters   = []
-        for i, chunk_text in enumerate(chunks):
+        for i, chunk_text in enumerate(raw_chunks):
             t0   = round(i * chunk_dur, 3)
             t1   = round((i + 1) * chunk_dur - 0.08, 3)
-            safe = chunk_text[:40]
-            filters.append(
-                f"drawtext=text='{safe}'"
-                f":fontsize={font_size}:fontcolor=white"
-                f":x=(w-tw)/2:y={y_pos}"
-                f":shadowcolor=black@0.95:shadowx=3:shadowy=3"
-                f"{box_flag}"
-                f":enable='between(t\\,{t0}\\,{t1})'"
+            rows = self._wrap_words(chunk_text, max_chars)
+            filters.extend(
+                self._drawtext_filters(rows, t0, t1,
+                                       font_size, y_base, line_height, box_flag)
             )
         return filters
 
