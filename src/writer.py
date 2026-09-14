@@ -368,9 +368,8 @@ class CreativeWriter:
 
         final_tags = self._clean_tags(meta.get("tags", ["ev", "ai", "tech"]))
 
-        chosen_title = random.choice([meta.get('title_a'), meta.get('title_b')])
-        if not chosen_title:
-            chosen_title = meta.get('title', topic)
+        valid_titles = [t for t in [meta.get('title_a'), meta.get('title_b'), meta.get('title')] if t]
+        chosen_title = random.choice(valid_titles) if valid_titles else topic
 
         hashtag_tags = [f"#{t.replace(' ', '')}" for t in final_tags[:10]]
         if "#Shorts" not in hashtag_tags:
@@ -478,9 +477,8 @@ class CreativeWriter:
             f"{STOCK_DISCLAIMER}"
         )
 
-        chosen_title = random.choice([meta.get('title_a'), meta.get('title_b')])
-        if not chosen_title:
-            chosen_title = meta.get('title', f"{topic} — EV Data Deep Dive | Evcarix")
+        valid_titles = [t for t in [meta.get('title_a'), meta.get('title_b'), meta.get('title')] if t]
+        chosen_title = random.choice(valid_titles) if valid_titles else f"{topic} — EV Data Deep Dive | Evcarix"
 
         return {
             "title": chosen_title,

@@ -198,12 +198,14 @@ def generate_bottom_panel(
 
         # Build a video from frames using ffmpeg concat demuxer
         list_path = os.path.join(frame_dir, "frames.txt")
-        with open(list_path, "w") as f:
+        with open(list_path, "w", encoding="utf-8") as f:
             for fpath, fdur in frame_paths:
-                f.write(f"file '{fpath}'\n")
+                clean_fpath = fpath.replace("\\", "/")
+                f.write(f"file '{clean_fpath}'\n")
                 f.write(f"duration {fdur:.3f}\n")
             # Repeat last frame once (required by concat demuxer)
-            f.write(f"file '{frame_paths[-1][0]}'\n")
+            last_clean = frame_paths[-1][0].replace("\\", "/")
+            f.write(f"file '{last_clean}'\n")
 
         cmd = [
             "ffmpeg", "-y",

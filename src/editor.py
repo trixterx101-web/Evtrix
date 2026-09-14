@@ -15,7 +15,15 @@ class AutoEditor:
 
     def assemble(self, clips_paths, audio_path, output_path,
                  is_short=True, title=None, topic=None, words_with_times=None):
+        temp_filter_file = None
+        temp_video = None
         try:
+            # Filter non-existent clip files
+            clips_paths = [c for c in clips_paths if c and os.path.exists(c)]
+            if not clips_paths:
+                logger.error("[Editor] No valid clip files provided for assembly.")
+                return False
+
             logger.info(f"[Editor] Assembling {len(clips_paths)} clips, short={is_short}")
 
             duration = self._get_audio_duration(audio_path)
@@ -64,10 +72,15 @@ class AutoEditor:
                     concat_inputs + f"concat=n={len(clips_paths)}:v=1:a=0[vout]"
                 )
 
+            # Write filter complex script to file to avoid Windows command-line character limits
+            temp_filter_file = os.path.join(tempfile.gettempdir(), f"filter_complex_{os.getpid()}.txt")
+            with open(temp_filter_file, "w", encoding="utf-8") as ff:
+                ff.write(fg)
+
             temp_video = os.path.join(tempfile.gettempdir(), f"temp_merged_{os.getpid()}.mp4")
 
             cmd_v = ["ffmpeg", "-y"] + inputs + [
-                "-filter_complex", fg,
+                "-filter_complex_script", temp_filter_file,
                 "-map", "[vout]",
                 "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
                 "-pix_fmt", "yuv420p", "-threads", "2", "-an",
@@ -93,15 +106,19 @@ class AutoEditor:
                 logger.error(f"[Editor] Pass 2 failed: {r2.stderr[-400:]}")
                 return False
 
-            if os.path.exists(temp_video):
-                os.remove(temp_video)
-
             logger.info(f"[Editor] ✅ Done: {output_path}")
             return output_path
 
         except Exception as e:
             logger.error(f"[Editor] Error: {e}")
             return False
+        finally:
+            if temp_filter_file and os.path.exists(temp_filter_file):
+                try: os.remove(temp_filter_file)
+                except: pass
+            if temp_video and os.path.exists(temp_video):
+                try: os.remove(temp_video)
+                except: pass
 
     def _build_subtitles(self, text: str, duration: float, W: int, H: int) -> list:
         """Sentence-level subtitle burn-in for long video only."""
