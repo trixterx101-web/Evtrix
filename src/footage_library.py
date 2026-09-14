@@ -127,20 +127,17 @@ class FootageLibrary:
             pass
 
     def get_fresh_clips(self, topic: str, count: int = 1, format: str = "shorts") -> list[str]:
+        """Shorts için tek query ile klip çek."""
         clips = []
 
-        # ÖNCELİK SIRASI: Hızlı ve güvenilir kaynaklar önce
-        # Archive.org ve YouTube CC devre dışı — çok yavaş / dead links
         sources = [
             self._fetch_pexels,
             self._fetch_pixabay,
             self._fetch_wikimedia,
             self._fetch_coverr,
             self._fetch_nasa,
-            # self._fetch_archive_org,  # Yavaş, gerekirse aç
-            # self._fetch_youtube_cc,   # Quota sorunları, gerekirse aç
         ]
-        random.shuffle(sources[:4])  # İlk 4'ü karıştır, NASA her zaman sonda
+        random.shuffle(sources[:4])
 
         for source in sources:
             if len(clips) >= count:
@@ -148,7 +145,7 @@ class FootageLibrary:
             try:
                 new_clips = source(topic, count - len(clips), format)
                 for c in new_clips:
-                    if c and os.path.exists(c):
+                    if c and os.path.exists(c) and c not in clips:
                         clips.append(c)
                         self._mark_used(c)
                         logger.info(f"[{source.__name__}] +1 klip: {c}")
@@ -157,6 +154,121 @@ class FootageLibrary:
 
         logger.info(f"get_fresh_clips: {len(clips)}/{count} klip toplandı")
         return clips[:count]
+
+    def get_varied_clips_for_long_video(self, topic: str, count: int, format: str = "long") -> list[str]:
+        """
+        Uzun video için maksimum çeşitlilik:
+        - QUERY_POOL'daki her sorgu en fazla 1-2 kez kullanılır
+        - Her kaynak farklı sayfa ve sorgu ile çağrılır
+        - Duplicate klip olmaz (path bazlı dedup)
+        - Hedef: count kadar FARKLI klip
+        """
+        query_pool = list(QUERY_POOL.get(topic, QUERY_POOL["electric_vehicle"]))
+        random.shuffle(query_pool)
+
+        clips = []
+        seen_paths = set()
+        query_idx = 0
+
+        # 1. Tur: Pexels — birden fazla farklı sorgu + farklı sayfalar
+        pexels_key = os.getenv("PEXELS_API_KEY")
+        if pexels_key:
+            for qi in range(min(len(query_pool), max(count // 3, 4))):
+                if len(clips) >= count:
+                    break
+                q = query_pool[qi % len(query_pool)]
+                page = random.randint(1, 8)
+                try:
+                    url = (
+                        f"https://api.pexels.com/videos/search"
+                        f"?query={requests.utils.quote(q)}&per_page=8"
+                        f"&orientation=landscape&page={page}"
+                    )
+                    r = self._session.get(url, headers={"Authorization": pexels_key}, timeout=(5, 20))
+                    if r.status_code == 200:
+                        for v in r.json().get("videos", []):
+                            if len(clips) >= count:
+                                break
+                            files = sorted(
+                                [f for f in v["video_files"]
+                                 if (f.get("width") or 0) >= 1280],
+                                key=lambda x: (x.get("width") or 0)
+                            )
+                            if not files:
+                                files = sorted(
+                                    [f for f in v["video_files"]
+                                     if (f.get("width") or 0) >= 720],
+                                    key=lambda x: (x.get("width") or 0)
+                                )
+                            if files:
+                                out = os.path.join(self.output_dir, f"pexels_{v['id']}.mp4")
+                                if out not in seen_paths and self._download_direct(files[0]["link"], out):
+                                    clips.append(out)
+                                    seen_paths.add(out)
+                                    self._mark_used(out)
+                                    logger.info(f"[Pexels-Long] q='{q}' p={page} +1: {out}")
+                except Exception as e:
+                    logger.error(f"Pexels-Long q='{q}': {e}")
+
+        # 2. Tur: Pixabay — farklı sorgu seti
+        pixabay_key = os.getenv("PIXABAY_API_KEY")
+        if pixabay_key and len(clips) < count:
+            pix_queries = query_pool[len(query_pool)//2:]  # İkinci yarı sorgular
+            random.shuffle(pix_queries)
+            for q in pix_queries[:max(count // 3, 4)]:
+                if len(clips) >= count:
+                    break
+                page = random.randint(1, 6)
+                try:
+                    url = (
+                        f"https://pixabay.com/api/videos/"
+                        f"?key={pixabay_key}&q={requests.utils.quote(q)}&per_page=10"
+                        f"&page={page}&video_type=film"
+                    )
+                    r = self._session.get(url, timeout=(5, 20))
+                    if r.status_code == 200:
+                        for v in r.json().get("hits", []):
+                            if len(clips) >= count:
+                                break
+                            f_data = (v["videos"].get("large")
+                                      or v["videos"].get("medium")
+                                      or v["videos"].get("small"))
+                            if f_data:
+                                out = os.path.join(self.output_dir, f"pixabay_{v['id']}.mp4")
+                                if out not in seen_paths and self._download_direct(f_data["url"], out):
+                                    clips.append(out)
+                                    seen_paths.add(out)
+                                    self._mark_used(out)
+                                    logger.info(f"[Pixabay-Long] q='{q}' p={page} +1: {out}")
+                except Exception as e:
+                    logger.error(f"Pixabay-Long q='{q}': {e}")
+
+        # 3. Tur: Wikimedia CC (ek çeşitlilik için)
+        if len(clips) < count:
+            try:
+                wiki_clips = self._fetch_wikimedia(topic, min(count - len(clips), 5), format)
+                for c in wiki_clips:
+                    if c and c not in seen_paths and os.path.exists(c):
+                        clips.append(c)
+                        seen_paths.add(c)
+            except Exception as e:
+                logger.error(f"Wikimedia-Long: {e}")
+
+        # 4. Tur: NASA (en sonda, çok az klip var)
+        if len(clips) < count:
+            try:
+                nasa_clips = self._fetch_nasa(topic, min(count - len(clips), 3), format)
+                for c in nasa_clips:
+                    if c and c not in seen_paths and os.path.exists(c):
+                        clips.append(c)
+                        seen_paths.add(c)
+            except Exception as e:
+                logger.error(f"NASA-Long: {e}")
+
+        logger.info(f"[LongVideoClips] {len(clips)}/{count} FARKLI klip toplandı")
+        # Sonuçları karıştır — aynı konunun klipleri art arda gelmesin
+        random.shuffle(clips)
+        return clips
 
     def _fetch_youtube_cc(self, topic: str, count: int, format: str) -> list[str]:
         """Creative Commons YouTube videoları — sadece YOUTUBE_API_KEY varsa çalışır."""
@@ -315,82 +427,96 @@ class FootageLibrary:
         return results
 
     def _fetch_pexels(self, topic: str, count: int, format: str) -> list[str]:
-        """Pexels — en güvenilir kaynak."""
+        """Pexels — en güvenilir kaynak. Her çağrıda farklı sorgu ve sayfa kullanır."""
         api_key = os.getenv("PEXELS_API_KEY")
         if not api_key:
             logger.warning("PEXELS_API_KEY yok")
             return []
-        query = random.choice(QUERY_POOL.get(topic, ["technology"]))
+        pool = QUERY_POOL.get(topic, ["technology", "electric vehicle"])
+        # Her çağrıda rastgele 2 farklı sorgu dene, daha geniş kapsam
+        queries = random.sample(pool, min(2, len(pool)))
         orientation = "portrait" if format == "shorts" else "landscape"
-        url = (
-            f"https://api.pexels.com/videos/search"
-            f"?query={query}&per_page=10&orientation={orientation}"
-            f"&page={random.randint(1, 5)}"
-        )
-        try:
-            r = self._session.get(
-                url,
-                headers={"Authorization": api_key},
-                timeout=(5, 15)
+        results = []
+        seen = set()
+        for query in queries:
+            if len(results) >= count:
+                break
+            url = (
+                f"https://api.pexels.com/videos/search"
+                f"?query={requests.utils.quote(query)}&per_page=12&orientation={orientation}"
+                f"&page={random.randint(1, 8)}"
             )
-            if r.status_code != 200:
-                logger.error(f"Pexels HTTP {r.status_code}")
-                return []
-            videos = r.json().get("videos", [])
-            results = []
-            for v in videos:
-                def _safe_width(f):
-                    try:
-                        return int(f.get("width") or 0)
-                    except (ValueError, TypeError):
-                        return 0
-
-                files = sorted(
-                    [f for f in v["video_files"] if _safe_width(f) >= 720],
-                    key=lambda x: _safe_width(x)
+            try:
+                r = self._session.get(
+                    url,
+                    headers={"Authorization": api_key},
+                    timeout=(5, 20)
                 )
-                if files:
-                    out = os.path.join(self.output_dir, f"pexels_{v['id']}.mp4")
-                    if self._download_direct(files[0]["link"], out):
-                        results.append(out)
-                if len(results) >= count:
-                    break
-            return results
-        except Exception as e:
-            logger.error(f"Pexels: {e}")
-            return []
+                if r.status_code != 200:
+                    logger.error(f"Pexels HTTP {r.status_code}")
+                    continue
+                videos = r.json().get("videos", [])
+                for v in videos:
+                    if len(results) >= count:
+                        break
+                    def _safe_width(f):
+                        try:
+                            return int(f.get("width") or 0)
+                        except (ValueError, TypeError):
+                            return 0
+                    files = sorted(
+                        [f for f in v["video_files"] if _safe_width(f) >= 720],
+                        key=lambda x: _safe_width(x)
+                    )
+                    if files:
+                        out = os.path.join(self.output_dir, f"pexels_{v['id']}.mp4")
+                        if out not in seen and self._download_direct(files[0]["link"], out):
+                            results.append(out)
+                            seen.add(out)
+            except Exception as e:
+                logger.error(f"Pexels q='{query}': {e}")
+        return results
 
     def _fetch_pixabay(self, topic: str, count: int, format: str) -> list[str]:
-        """Pixabay — güvenilir yedek kaynak."""
+        """Pixabay — güvenilir yedek kaynak. Her çağrıda farklı sorgu kullanır."""
         api_key = os.getenv("PIXABAY_API_KEY")
         if not api_key:
             logger.warning("PIXABAY_API_KEY yok")
             return []
-        query = random.choice(QUERY_POOL.get(topic, ["technology"]))
-        url = (
-            f"https://pixabay.com/api/videos/"
-            f"?key={api_key}&q={query}&per_page=10"
-            f"&page={random.randint(1, 5)}"
-        )
-        try:
-            r = self._session.get(url, timeout=(5, 15))
-            if r.status_code != 200:
-                logger.error(f"Pixabay HTTP {r.status_code}")
-                return []
-            videos = r.json().get("hits", [])
-            results = []
-            for v in videos:
-                f = v["videos"].get("large") or v["videos"].get("medium")
-                if f:
-                    out = os.path.join(self.output_dir, f"pixabay_{v['id']}.mp4")
-                    if self._download_direct(f["url"], out):
-                        results.append(out)
-                if len(results) >= count:
-                    break
-            return results
-        except Exception as e:
-            logger.error(f"Pixabay: {e}")
-            return []
+        pool = QUERY_POOL.get(topic, ["technology", "electric vehicle"])
+        queries = random.sample(pool, min(2, len(pool)))
+        results = []
+        seen = set()
+        for query in queries:
+            if len(results) >= count:
+                break
+            url = (
+                f"https://pixabay.com/api/videos/"
+                f"?key={api_key}&q={requests.utils.quote(query)}&per_page=12"
+                f"&page={random.randint(1, 6)}"
+            )
+            try:
+                r = self._session.get(url, timeout=(5, 20))
+                if r.status_code != 200:
+                    logger.error(f"Pixabay HTTP {r.status_code}")
+                    continue
+                videos = r.json().get("hits", [])
+                for v in videos:
+                    if len(results) >= count:
+                        break
+                    f_data = (
+                        v["videos"].get("large")
+                        or v["videos"].get("medium")
+                        or v["videos"].get("small")
+                    )
+                    if f_data:
+                        out = os.path.join(self.output_dir, f"pixabay_{v['id']}.mp4")
+                        if out not in seen and self._download_direct(f_data["url"], out):
+                            results.append(out)
+                            seen.add(out)
+            except Exception as e:
+                logger.error(f"Pixabay q='{query}': {e}")
+        return results
 
     def _fetch_wikimedia(self, topic: str, count: int, format: str) -> list[str]:
         """Wikimedia Commons — CC0/public domain."""

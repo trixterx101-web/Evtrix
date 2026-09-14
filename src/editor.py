@@ -29,14 +29,46 @@ class AutoEditor:
             duration = self._get_audio_duration(audio_path)
             logger.info(f"[Editor] Audio duration: {duration:.1f}s")
 
+            import random
+
             clip_dur = 6.0
-            # Prevent clip duplication by dynamically extending clip_dur if we don't have enough clips
+            # Adjust clip duration so that the whole pool fits evenly without repetition if possible
             if len(clips_paths) > 0 and (duration / clip_dur) > len(clips_paths):
-                clip_dur = (duration / len(clips_paths)) + 0.1
-                
+                # Try to extend each clip's duration so we need fewer repeats
+                ideal_dur = duration / len(clips_paths)
+                # Cap at 20s per clip for variety, floor at 5s
+                clip_dur = max(5.0, min(20.0, ideal_dur))
+
             needed = max(1, int(duration / clip_dur) + 1)
             if len(clips_paths) < needed:
-                clips_paths = (clips_paths * (needed // len(clips_paths) + 1))[:needed]
+                # Smart cycling: shuffle copies so the same clip never appears back-to-back
+                pool = list(clips_paths)
+                random.shuffle(pool)
+                extended = []
+                prev = None
+                pool_copy = list(pool)
+                while len(extended) < needed:
+                    random.shuffle(pool_copy)
+                    for c in pool_copy:
+                        if len(extended) >= needed:
+                            break
+                        if c != prev:
+                            extended.append(c)
+                            prev = c
+                        else:
+                            # Try to insert a different clip
+                            for alt in pool_copy:
+                                if alt != prev and len(extended) < needed:
+                                    extended.append(alt)
+                                    prev = alt
+                                    break
+                            else:
+                                # No alternative, accept the duplicate
+                                extended.append(c)
+                                prev = c
+                clips_paths = extended[:needed]
+            else:
+                random.shuffle(clips_paths)
 
             W, H = (1080, 1440) if is_short else (1920, 1080)
 

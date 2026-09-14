@@ -360,7 +360,7 @@ class EvcarixOrchestrator:
         print(f"      Konu  : {full_topic.encode('ascii', 'ignore').decode('ascii')}", flush=True)
         print(f"      Başlık: {title.encode('ascii', 'ignore').decode('ascii')}")
 
-        print(f"\n[2/7] Footage toplanıyor (16:9 CC / Pexels)...", flush=True)
+        print(f"\n[2/7] Footage toplanıyor (16:9 CC / Pexels — çeşitleme modu)...", flush=True)
         cat_map = {
             "battery": "battery_tech", "electric": "electric_vehicle", "ev": "electric_vehicle",
             "ai": "artificial_intelligence", "neural": "artificial_intelligence",
@@ -372,11 +372,30 @@ class EvcarixOrchestrator:
                 topic_key = v
                 break
 
-        top_video_list = self.footage_library.get_fresh_clips(topic=topic_key, count=clip_count, format="long")
+        # Uzun video: max 25 FARKLI klip — 25 klip × ~16s = ~400s = ~6.6 dk
+        # (Editor klipleri dolanırsa shuffle ile karıştırır)
+        LONG_CLIP_TARGET = 25
+        top_video_list = self.footage_library.get_varied_clips_for_long_video(
+            topic=topic_key, count=LONG_CLIP_TARGET, format="long"
+        )
+
+        # Yetersizse standart get_fresh_clips ile de topla
+        if len(top_video_list) < 6:
+            print(f"      Ek kaynak taranıyor ({len(top_video_list)} klip bulundu)...", flush=True)
+            extra = self.footage_library.get_fresh_clips(
+                topic=topic_key, count=LONG_CLIP_TARGET - len(top_video_list), format="long"
+            )
+            seen = set(top_video_list)
+            for c in extra:
+                if c not in seen:
+                    top_video_list.append(c)
+                    seen.add(c)
+
         top_video = top_video_list[0] if top_video_list else None
-        
+        print(f"      [{len(top_video_list)} farklı klip toplandı]")
+
         if not top_video:
-            print("      ⚠️ Klip bulunamadı, fallback üretiliyor...", flush=True)
+            print("      Klip bulunamadı, fallback üretiliyor...", flush=True)
             from src.utils.fallback import generate_fallback_video
             top_video = f"assets/footage/fallback_long_{ts}.mp4"
             generate_fallback_video(60, topic, top_video)
