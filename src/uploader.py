@@ -20,61 +20,81 @@ class YouTubeUploader:
     def get_authenticated_service(self):
         from google.auth.transport.requests import Request
         from google.oauth2.credentials import Credentials
-        
-        creds = None
+
+        # ── CI/GitHub Actions: refresh_token secret'tan kimlik doğrula ───────
+        # Bu yöntem token.json'a bağımlı değil, access token süresi dolsa bile çalışır
+        refresh_token = os.getenv("YOUTUBE_REFRESH_TOKEN")
+        client_id     = os.getenv("YOUTUBE_CLIENT_ID")
+        client_secret = os.getenv("YOUTUBE_CLIENT_SECRET")
+
+        if (os.getenv("CI") or os.getenv("GITHUB_ACTIONS")) and refresh_token and client_id and client_secret:
+            print("[Uploader] CI mode: refresh_token secret kullanılıyor...", flush=True)
+            try:
+                creds = Credentials(
+                    token=None,
+                    refresh_token=refresh_token,
+                    token_uri="https://oauth2.googleapis.com/token",
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    scopes=self.scopes,
+                )
+                # Token'ı hemen yenile (access token al)
+                creds.refresh(Request())
+                print("[Uploader] ✅ Token refresh_token ile başarıyla alındı.", flush=True)
+                return build("youtube", "v3", credentials=creds)
+            except Exception as e:
+                print(f"[Uploader] WARN refresh_token ile kimlik doğrulama başarısız: {e}", flush=True)
+                print("[Uploader] token.json ile devam deneniyor...", flush=True)
+
+        # ── Yerel / token.json tabanlı kimlik doğrulama ──────────────────────
+        creds      = None
         token_file = "token.json"
-        
-        # token.json dosyası varsa yükle
+
         if os.path.exists(token_file):
-            creds = Credentials.from_authorized_user_file(token_file, self.scopes)
-        
-        # Eğer geçerli kimlik bilgisi yoksa veya süresi dolmuşsa yenile/oluştur
+            try:
+                creds = Credentials.from_authorized_user_file(token_file, self.scopes)
+            except Exception as e:
+                print(f"[Uploader] WARN token.json okunamadı: {e}", flush=True)
+
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                print("[Uploader] Token surest dolmus, yenileniyor...", flush=True)
+                print("[Uploader] Token süresi dolmuş, yenileniyor...", flush=True)
                 try:
                     creds.refresh(Request())
-                    print("[Uploader] OK Token basariyla yenilendi.", flush=True)
+                    print("[Uploader] ✅ Token başarıyla yenilendi.", flush=True)
                 except Exception as e:
-                    print("[Uploader] WARN Token yenileme hatasi: {e}".format(e=e), flush=True)
+                    print(f"[Uploader] WARN Token yenileme hatası: {e}", flush=True)
                     if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                        print("[Uploader] CI: Yeni token.json uretin ve GitHub Secret'a ekleyin.", flush=True)
+                        print("[Uploader] ❌ CI: Yeni token.json üretin ve GitHub Secret'a ekleyin.", flush=True)
                         return None
-                    else:
-                        print("[Uploader] Yenileme basarisiz, sifirdan giris denenecek...", flush=True)
-                        creds = None # Reset creds to trigger flow below
-            
+                    creds = None
+
             if not creds or not creds.valid:
-                # CI/CD ortamında tarayıcı açılamaz
                 if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                    print("[Uploader] ERROR: Gerekli token.json bulunamadi veya gecersiz!", flush=True)
+                    print("[Uploader] ❌ CI: Geçerli kimlik bilgisi yok. YOUTUBE_REFRESH_TOKEN secret'ını kontrol edin.", flush=True)
                     return None
-                
-                print("[Uploader] Tarayici uzerinden giris yapilmasi bekleniyor...", flush=True)
+                print("[Uploader] Tarayıcı üzerinden giriş bekleniyor...", flush=True)
                 flow = InstalledAppFlow.from_client_secrets_file(self.client_secrets_file, self.scopes)
                 creds = flow.run_local_server(port=0)
-        
+
         if not creds:
             return None
-            
-            # Gelecek kullanım için sakla
-        if not creds:
-            return None
-            
+
         try:
             with open(token_file, "w") as token:
                 token.write(creds.to_json())
         except Exception as e:
-            print(f"[Uploader] WARN token.json yazilamadi: {e}", flush=True)
-        
+            print(f"[Uploader] WARN token.json yazılamadı: {e}", flush=True)
+
         try:
             return build("youtube", "v3", credentials=creds)
         except Exception as e:
-            print(f"[Uploader] ERROR YouTube servisi olusturulamadi: {e}", flush=True)
+            print(f"[Uploader] ❌ YouTube servisi oluşturulamadı: {e}", flush=True)
             return None
 
+
     def upload_video(self, file_path, title, description, tags, category_id="28", max_retries=3,
-                  playlist_name: str = None, thumbnail_path: str = None, topic: str = ""):
+                  playlist_name: str = None, thumbnail_path: str = None, topic: str = "", is_long: bool = False):
         """Videoyu YouTube'a yükler.
         Category 28 = Science & Technology (EV + AI içeriği için en uygun)
         503/500 transient sunucu hatalarında exponential backoff ile retry yapar.
@@ -119,8 +139,11 @@ class YouTubeUploader:
             },
             "status": {
                 "privacyStatus": "public",
-                "selfDeclaredMadeForKids": False,
-                "madeForKids": False
+                "selfDeclaredMadeForKids": False,   # Zorunlu: YPP başvurusu için False olmalı
+                "madeForKids": False,                # Zorunlu: YPP başvurusu için False olmalı
+                "embeddable": True,                  # Videolar gömülebilsin (izlenme artırır)
+                "publicStatsViewable": True,         # İzlenme sayısı herkese görünsün
+                "notifySubscribers": True,           # Abone bildirimi (engagement artırır)
             }
         }
 
@@ -167,7 +190,7 @@ class YouTubeUploader:
                     self.set_thumbnail(video_id, thumbnail_path)
 
                 # Post first comment for engagement signal
-                self.post_first_comment(video_id, topic=topic)
+                self.post_first_comment(video_id, topic=topic, is_long=is_long)
                 
                 return video_id
             except (HttpError, ResumableUploadError) as e:
@@ -212,24 +235,42 @@ class YouTubeUploader:
             print(f"[Uploader] WARN Playlist bulunamadi/olusturulamadi: {e}")
             return None
 
-    def post_first_comment(self, video_id: str, topic: str = "") -> bool:
-        """Upload sonrasi videonun altina ilk yorum yap. Engagement sinyali uretir."""
+    def post_first_comment(self, video_id: str, topic: str = "", is_long: bool = False) -> bool:
+        """Upload sonrasi videonun altina ilk yorum yap. Engagement sinyali uretir.
+        Konu bazli, dikkat cekici ve yorum almaya optimize edilmis yorumlar kullanir.
+        """
         import random
         import time
         clean_topic = topic.replace("_", " ").title() if topic else "this EV topic"
-        COMMENTS = [
-            f"Which stat surprised you most about {clean_topic}? Drop it below! We read every comment!",
-            f"What's YOUR take on {clean_topic}? Let us know in the comments below!",
-            f"We ran the real numbers on {clean_topic}. What do YOU think? Comment below!",
-            f"EV owners: have you experienced this with {clean_topic}? Share your story!",
-            f"How does {clean_topic} affect YOUR EV decision? Tell us below!",
-            f"What aspect of {clean_topic} should we cover next? Drop a suggestion!",
-            f"USA, Europe or China -- where do you think {clean_topic} is heading? Comment!",
-            f"Agree or disagree with this {clean_topic} data? Let us know why below!",
-        ]
+
+        if is_long:
+            # Uzun videolar icin: derinlemesine, tartisma yaratan yorumlar
+            COMMENTS = [
+                f"🔥 Hot take: {clean_topic} is the most misunderstood topic in EVs right now. What do YOU think is the biggest misconception? Drop it below — best comment gets pinned! 👇",
+                f"📊 We spent days analyzing the real data behind {clean_topic}. One stat completely changed our perspective. Did any number in this video surprise YOU? Tell us below! 💬",
+                f"⚡ EV owners & enthusiasts: after watching this deep-dive on {clean_topic} — what's your verdict? Game-changer or overhyped? Reply below, we read EVERY comment! 🔽",
+                f"🌍 USA vs Europe vs China: where do you think the {clean_topic} situation is heading in the next 3 years? Cast your vote in the comments! We'll feature the top responses. 👇",
+                f"💡 This video took weeks of data research to produce. If {clean_topic} affects your EV buying decision — HOW? Share your real-world experience below! 🚗⚡",
+                f"🤔 Controversial question: Is {clean_topic} actually GOOD or BAD for EV adoption long-term? Serious answers only — best argument gets featured in our next video! 📌",
+                f"📌 PINNED: What's the ONE thing about {clean_topic} that most people completely ignore? Drop your insight below — we genuinely want to know what our community thinks! 💬",
+                f"🚀 If you watched until the end — you're already ahead of 99% of EV discussions happening online. What was YOUR biggest takeaway about {clean_topic}? Comment below! ⬇️",
+            ]
+        else:
+            # Shorts icin: hizli, kisa, aninda yorum ceken sorular
+            COMMENTS = [
+                f"⚡ Which number about {clean_topic} shocked you the most? Comment fast — we pin the best replies! 👇",
+                f"🔥 Did you know THIS about {clean_topic}? Comment your reaction — we read everything! 💬",
+                f"🚗 EV owners: is the {clean_topic} data accurate to YOUR real experience? Tell us in 1 sentence! 👇",
+                f"📊 Agree or disagree with these {clean_topic} numbers? Drop your take below! Best comment gets pinned 📌",
+                f"💡 Quick poll: Does the {clean_topic} data change how you see EVs? YES or NO below! 👇",
+                f"🌍 USA, Europe, or China — who handles {clean_topic} best? Comment your answer! ⬇️",
+                f"⚡ What's the ONE thing about {clean_topic} that most people get WRONG? Drop it below! 🔽",
+                f"🔋 Real talk — is {clean_topic} a dealbreaker for YOUR EV decision? Comment your honest take! 💬",
+            ]
+
         comment_text = random.choice(COMMENTS)
         try:
-            time.sleep(10)
+            time.sleep(12)  # YouTube'un video indeksleme suresi icin kisa bekleme
             self.youtube.commentThreads().insert(
                 part="snippet",
                 body={
@@ -241,7 +282,7 @@ class YouTubeUploader:
                     }
                 }
             ).execute()
-            print(f"[Uploader] First comment posted: {comment_text[:60]}...")
+            print(f"[Uploader] ✅ First comment posted: {comment_text[:80]}...")
             return True
         except Exception as e:
             print(f"[Uploader] Comment skipped (non-fatal): {e}")
