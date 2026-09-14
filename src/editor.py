@@ -9,8 +9,8 @@ logger = logging.getLogger("Editor")
 class AutoEditor:
     """
     Assembles multiple clips.
-    Short (9:16): NO subtitle burn-in on video — subtitles shown in bottom panel.
-    Long (16:9):  subtitle burn-in at bottom of full-screen video.
+    Short (9:16): Full 1080x1920 phone screen — karaoke-style subtitles burned-in.
+    Long (16:9):  1920x1080 full-screen video with subtitle burn-in at bottom.
     """
 
     def assemble(self, clips_paths, audio_path, output_path,
@@ -71,7 +71,7 @@ class AutoEditor:
             else:
                 random.shuffle(clips_paths)
 
-            W, H = (1080, 1440) if is_short else (1920, 1080)
+            W, H = (1080, 1920) if is_short else (1920, 1080)
 
             inputs      = []
             scale_parts = []
@@ -86,11 +86,16 @@ class AutoEditor:
 
             concat_inputs = "".join(f"[v{i}]" for i in range(len(clips_paths)))
 
-            # Long video: burn subtitles on video. Short: no subtitles (panel handles it)
-            if not is_short and title:
-                subtitle_filters = self._build_subtitles(title, duration, W, H,
-                                                         subtitle_chunks=subtitle_chunks)
-                subtitle_chain   = ",".join(subtitle_filters) if subtitle_filters else ""
+            # Both short and long: burn subtitles on video.
+            # Short: karaoke-style large text in lower third.
+            # Long:  standard subtitle text near bottom.
+            if title:
+                subtitle_filters = self._build_subtitles(
+                    title, duration, W, H,
+                    subtitle_chunks=subtitle_chunks,
+                    is_short=is_short
+                )
+                subtitle_chain = ",".join(subtitle_filters) if subtitle_filters else ""
             else:
                 subtitle_chain = ""
 
@@ -155,14 +160,24 @@ class AutoEditor:
                 except: pass
 
     def _build_subtitles(self, text: str, duration: float, W: int, H: int,
-                         subtitle_chunks: list = None) -> list:
+                         subtitle_chunks: list = None,
+                         is_short: bool = False) -> list:
         """
         Build FFmpeg drawtext subtitle filters.
+        - Short: karaoke-style, large font, semi-transparent box, lower-third position.
+        - Long:  standard subtitle near bottom.
         - If real subtitle_chunks provided (from VoiceEngine), use their exact start/end times.
         - Otherwise fall back to equal-duration splitting of the title text.
         """
-        font_size = 52
-        y_pos     = H - 110
+        if is_short:
+            # Karaoke style for Shorts: big, bold, centred at ~80% height
+            font_size = 72
+            y_pos     = int(H * 0.80)   # ~80% down the 1920px frame
+            box_flag  = ":box=1:boxcolor=black@0.55:boxborderw=18"
+        else:
+            font_size = 52
+            y_pos     = H - 110
+            box_flag  = ":box=1:boxcolor=black@0.40:boxborderw=10"
 
         # ── Real timing path ─────────────────────────────────────────────────
         if subtitle_chunks:
@@ -182,9 +197,10 @@ class AutoEditor:
                     f":fontsize={font_size}:fontcolor=white"
                     f":x=(w-tw)/2:y={y_pos}"
                     f":shadowcolor=black@0.95:shadowx=3:shadowy=3"
+                    f"{box_flag}"
                     f":enable='between(t\\,{t0}\\,{t1})'"
                 )
-            logger.info(f"[Editor] Built {len(filters)} real-timing subtitle filters")
+            logger.info(f"[Editor] Built {len(filters)} real-timing subtitle filters (short={is_short})")
             return filters
 
         # ── Fallback: equal-duration split ───────────────────────────────────
@@ -216,6 +232,7 @@ class AutoEditor:
                 f":fontsize={font_size}:fontcolor=white"
                 f":x=(w-tw)/2:y={y_pos}"
                 f":shadowcolor=black@0.95:shadowx=3:shadowy=3"
+                f"{box_flag}"
                 f":enable='between(t\\,{t0}\\,{t1})'"
             )
         return filters

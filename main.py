@@ -244,45 +244,26 @@ class EvcarixOrchestrator:
         duration = audio_clip.duration
         audio_clip.close()
 
-        print("\n[4/6] Split-Screen Video üretiliyor (3D Panel + Subtitles)...", flush=True)
-        
-        from src.bottom_panel import generate_bottom_panel
-        bottom_panel_path = f"assets/panels/bottom_{ts}.mp4"
-        # Pass real subtitle chunks (SentenceBoundary timings) from TTS engine
-        subtitle_chunks = voice_data.get("subtitle_chunks") or None
-        bottom_res = generate_bottom_panel(
-            topic=topic_key,
-            subtitle_text=script,
-            duration=duration,
-            output_path=bottom_panel_path,
-            panel_size=(1080, 480),
-            subtitle_chunks=subtitle_chunks,   # ← Real speech timings
-        )
-        
-        if not bottom_res:
-            raise RuntimeError("[Main] Alt panel üretilemedi.")
+        print("\n[4/6] Full-Screen Short Video üretiliyor (1080x1920 + karaoke alt yazı)...", flush=True)
 
-        top_assembled = f"assets/footage/top_assembled_{ts}.mp4"
-        self.editor.assemble(
+        # Subtitle chunks — TTS'ten gelen gerçek zamanlı konuşma sınırları
+        subtitle_chunks = voice_data.get("subtitle_chunks") or None
+
+        final_video_path = f"output/evcarix_shorts_{ts}.mp4"
+        os.makedirs("output", exist_ok=True)
+
+        assembled = self.editor.assemble(
             clips_paths=top_video_list,
             audio_path=audio_path,
-            output_path=top_assembled,
+            output_path=final_video_path,
             is_short=True,
             title=script,
+            subtitle_chunks=subtitle_chunks,   # ← Gerçek TTS zamanlama verileri
         )
 
-        output_filename  = f"evcarix_shorts_{ts}.mp4"
-        final_video_path = self.compositor.compose_split_screen(
-            top_video=top_assembled,
-            bottom_panel=bottom_res,
-            audio_path=audio_path,
-            output_filename=output_filename,
-            video_format="shorts"
-        )
-
-        if not final_video_path or not os.path.exists(final_video_path):
-            raise RuntimeError(f"[Main] Montaj çıktısı bulunamadı.")
-        print(f"      ✅ Split-Screen Video hazır: {final_video_path}", flush=True)
+        if not assembled or not os.path.exists(final_video_path):
+            raise RuntimeError("[Main] Short video montajı başarısız oldu.")
+        print(f"      ✅ Full-Screen Short hazır: {final_video_path}", flush=True)
 
         print("\n[5/6] Thumbnail üretiliyor...", flush=True)
         thumbnail_path = None
