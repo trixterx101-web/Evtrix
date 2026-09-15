@@ -3,7 +3,6 @@ name: Evcarix Ultra-HD Pipeline v2
 on:
   schedule:
     - cron: '0 12 * * 5'   # TR 15:00 — Cuma — Long + Short Video
-    - cron: '0 6 * * 1'    # TR 09:00 — Pazartesi — Konu Kuyruğunu Yenile
   workflow_dispatch:
     inputs:
       video_type:
@@ -146,20 +145,22 @@ jobs:
       - name: Set Content Mode
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
+            INPUT_MODE="${{ github.event.inputs.content_mode }}"
+            # Manuel tetiklemede 'auto' seçilirse trend moduna yükselt
+            # — her manuel video yayınlanır yayınlanmaz en güncel trendlerden üretilsin
+            if [ "$INPUT_MODE" == "auto" ] || [ -z "$INPUT_MODE" ]; then
+              echo "CONTENT_MODE=trend" >> $GITHUB_ENV
+            else
+              echo "CONTENT_MODE=$INPUT_MODE" >> $GITHUB_ENV
+            fi
             echo "VIDEO_TYPE=${{ github.event.inputs.video_type }}" >> $GITHUB_ENV
             echo "FORCED_TOPIC=${{ github.event.inputs.forced_topic }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.schedule }}" == "0 6 * * 1" ]; then
-            # TR 09:00 — Pzt — Sadece konu kuyruğunu yenile, video üretme
-            echo "CONTENT_MODE=refresh_queue" >> $GITHUB_ENV
-            echo "VIDEO_TYPE=none" >> $GITHUB_ENV
-          elif [ "${{ github.event.schedule }}" == "0 12 * * 5" ]; then
-            # TR 15:00 — Cum — Long + Short
-            echo "CONTENT_MODE=auto" >> $GITHUB_ENV
-            echo "VIDEO_TYPE=long" >> $GITHUB_ENV
+            echo "FORCE_FRESH_TREND=true" >> $GITHUB_ENV
           else
-            echo "CONTENT_MODE=auto" >> $GITHUB_ENV
+            # TR 15:00 — Cuma — Long Video (ve otomatik Short)
+            echo "CONTENT_MODE=trend" >> $GITHUB_ENV
             echo "VIDEO_TYPE=long" >> $GITHUB_ENV
+            echo "FORCE_FRESH_TREND=true" >> $GITHUB_ENV
           fi
           echo "✅ Content Mode: $CONTENT_MODE"
           echo "✅ Video Type: $VIDEO_TYPE"

@@ -242,8 +242,11 @@ class YouTubeCCSource:
         # CI ortamında 720p, local'de 1080p
         height = "720" if os.getenv("CI") else "1080"
 
-        cmd = [
-            "yt-dlp",
+        import shutil
+        import sys
+        ytdlp_base = ["yt-dlp"] if shutil.which("yt-dlp") else [sys.executable, "-m", "yt_dlp"]
+
+        cmd = ytdlp_base + [
             "--format", f"bestvideo[height<={height}][ext=mp4]+bestaudio[ext=m4a]/best[height<={height}][ext=mp4]/best",
             "--merge-output-format", "mp4",
             "--output", dest,

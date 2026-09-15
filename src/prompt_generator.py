@@ -53,27 +53,21 @@ Example format:
             logger.warning(f"[PromptGen] Groq hatası: {e}")
 
     # ── 2. Gemini (Yedek) ─────────────────────────────────────────
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key:
-        try:
-            logger.info("[PromptGen] Gemini deneniyor...")
-            from google import genai
-            client = genai.Client(api_key=gemini_key)
+    try:
+        logger.info("[PromptGen] Gemini deneniyor...")
+        from src.writer import call_gemini
 
-            prompt_text = f"""Act as a Pexels API expert. Generate exactly {count} raw, simple video search queries for topic '{topic}'. 
+        prompt_text = f"""Act as a Pexels API expert. Generate exactly {count} raw, simple video search queries for topic '{topic}'. 
 Max 4 words per query. No adjectives like 'cinematic', 'epic', 'stunning'. Return ONLY a JSON array of strings."""
-            
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt_text
-            )
-            if response and response.text:
-                result = _parse_json_list(response.text, count)
-                if result:
-                    logger.info(f"[PromptGen] ✅ Gemini başarılı: {len(result)} API arama kelimesi üretildi.")
-                    return result
-        except Exception as e:
-            logger.warning(f"[PromptGen] Gemini hatası: {e}")
+        
+        text_resp = call_gemini(prompt_text)
+        if text_resp:
+            result = _parse_json_list(text_resp, count)
+            if result:
+                logger.info(f"[PromptGen] ✅ Gemini başarılı: {len(result)} API arama kelimesi üretildi.")
+                return result
+    except Exception as e:
+        logger.warning(f"[PromptGen] Gemini hatası: {e}")
 
     # ── 3. Statik Fallback ────────────────────────────────────────
     logger.warning("[PromptGen] Tüm AI'lar başarısız, statik fallback kullanılıyor.")

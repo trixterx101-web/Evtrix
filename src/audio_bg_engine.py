@@ -208,6 +208,7 @@ class ccMixerSource:
     """
     ccMixter — CC lisanslı ambient/electronic müzik.
     Public API, key gerektirmez.
+    ⚠️ Monetizasyon güvenliği: NC (NonCommercial) lisanslı içerikler filtreleniyor.
     """
 
     def get_track(self, tags: str = "ambient electronic",
@@ -215,7 +216,7 @@ class ccMixerSource:
         os.makedirs(dest_dir, exist_ok=True)
         try:
             params = {
-                "tags": tags, "limit": 10, "offset": random.randint(0, 50),
+                "tags": tags, "limit": 15, "offset": random.randint(0, 50),
                 "f": "json", "lic": "open"
             }
             r = requests.get(CCMIXTER_API, params=params,
@@ -231,17 +232,23 @@ class ccMixerSource:
                 title  = track.get("upload_name", "Unknown")
                 artist = track.get("user_name", "Unknown")
                 lic    = track.get("license_name", "CC")
+                # ⚠️ MONETIZASYON KORUMASI: NC ve ND lisansları ticari kullanıma kapalı
+                lic_lower = lic.lower()
+                if ("noncommercial" in lic_lower or "-nc" in lic_lower
+                        or "no derivatives" in lic_lower or "-nd" in lic_lower):
+                    logger.debug(f"[ccMixter] NC/ND lisans atlandı: {title} ({lic})")
+                    continue
                 fname  = hashlib.md5(url.encode()).hexdigest()[:12]
                 dest   = os.path.join(dest_dir, f"ccmixter_{fname}.mp3")
                 if os.path.exists(dest) and os.path.getsize(dest) > 10_000:
                     return {"title": title, "artist": artist,
                             "license": lic, "path": dest,
-                            "attribution": f"Music: {title} by {artist} (ccmixter.org)"}
+                            "attribution": f"Music: {title} by {artist} (ccmixter.org) — {lic}"}
                 if _download_audio(url, dest):
                     _log_license(dest, "ccMixter", lic, artist, title)
                     return {"title": title, "artist": artist,
                             "license": lic, "path": dest,
-                            "attribution": f"Music: {title} by {artist} (ccmixter.org)"}
+                            "attribution": f"Music: {title} by {artist} (ccmixter.org) — {lic}"}
         except Exception as e:
             logger.error(f"ccMixter error: {e}")
         return None

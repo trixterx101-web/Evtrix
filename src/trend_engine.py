@@ -843,22 +843,14 @@ Return ONLY this JSON (no markdown, no backticks):
             )
             system_msg = "You are a technical EV analyst for 'Evcarix'."
             
-            for key in self.gemini_api_keys:
-                try:
-                    client = genai.Client(api_key=key)
-                    resp = client.models.generate_content(
-                        model='gemini-2.0-flash',
-                        contents=f"{system_msg}\n\n{prompt_user}"
-                    )
-                    selected = resp.text.strip()
-                    if selected and any(t.lower() in selected.lower() or selected.lower() in t.lower() for t in pool):
-                        print(f"[TrendEngine] Gemini RSS: {selected}")
-                        self._save_topic_history(selected)
-                        return selected
-                except Exception as e:
-                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                        continue
-                    print(f"[TrendEngine] Gemini error: {e}")
+            try:
+                selected = call_gemini(f"{system_msg}\n\n{prompt_user}")
+                if selected and any(t.lower() in selected.lower() or selected.lower() in t.lower() for t in pool):
+                    print(f"[TrendEngine] Gemini RSS: {selected}")
+                    self._save_topic_history(selected)
+                    return selected
+            except Exception as e:
+                print(f"[TrendEngine] Gemini error: {e}")
 
         core_topics = [
             # Electric Vehicles & Future Tech

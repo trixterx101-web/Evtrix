@@ -31,9 +31,15 @@ _PLACEHOLDERS = {"", "YOUR_NEW_GEMINI_KEY_HERE", "YOUR_KEY_HERE", "PLACEHOLDER",
 _cooldowns: dict[str, float] = {}
 
 STOCK_DISCLAIMER = (
-    "Stock footage courtesy of Pexels, Pixabay (CC0). "
-    "Manufacturer press imagery used for editorial/informational purposes only. "
-    "No affiliation with any manufacturer shown."
+    "⚠️ AI CONTENT DISCLOSURE: This video uses AI-generated voiceover (text-to-speech) and "
+    "AI-assisted script writing. All data and statistics cited are sourced from publicly available "
+    "industry reports and research. AI tools are used for production efficiency only — "
+    "all factual claims are verified before publishing.\n\n"
+    "📹 Stock footage courtesy of Pexels, Pixabay (CC0 Public Domain) and YouTube Creative Commons "
+    "(CC-BY 4.0) contributors. Manufacturer press imagery used for editorial and informational "
+    "purposes only under fair use. No affiliation with any manufacturer or brand shown.\n"
+    "🎵 Background music: Kevin MacLeod (incompetech.com) licensed under Creative Commons Attribution "
+    "4.0 — http://creativecommons.org/licenses/by/4.0/ | Additional music from Free Music Archive (CC-BY)."
 )
 
 def _load_keys(env_names: list[str]) -> list[str]:
@@ -57,26 +63,42 @@ def _available_keys(keys: list[str]) -> list[str]:
 # PROVIDERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-def call_groq(prompt: str, model: str = "llama-3.3-70b-versatile", max_tokens: int = 900) -> Optional[str]:
+GROQ_MODELS = ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama3-70b-8192", "mixtral-8x7b-32768"]
+GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-3.6-flash", "gemini-1.5-pro"]
+
+def call_groq(prompt: str, model: Optional[str] = None, max_tokens: int = 900) -> Optional[str]:
     avail = _available_keys(_GROQ_KEYS)
     if not avail: 
         logger.warning("[Groq] No available keys (all on cooldown or unconfigured)")
         return None
+
+    models_to_try = [model] if model else GROQ_MODELS
+    for m in GROQ_MODELS:
+        if m not in models_to_try:
+            models_to_try.append(m)
+
     try:
         from groq import Groq
         for key in avail:
-            try:
-                client = Groq(api_key=key)
-                resp = client.chat.completions.create(
-                    model=model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.7,
-                    max_tokens=max_tokens,
-                )
-                return resp.choices[0].message.content.strip()
-            except Exception as e:
-                logger.error(f"[Groq ERROR] Key ending ...{key[-4:]}: {e}")
-                _cooldowns[key] = time.time() + 120
+            for m in models_to_try:
+                try:
+                    client = Groq(api_key=key)
+                    resp = client.chat.completions.create(
+                        model=m,
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=0.7,
+                        max_tokens=max_tokens,
+                    )
+                    if resp and resp.choices and resp.choices[0].message.content:
+                        return resp.choices[0].message.content.strip()
+                except Exception as e:
+                    err_str = str(e)
+                    logger.warning(f"[Groq ERROR] Model '{m}' / Key ...{key[-4:]}: {e}")
+                    if "404" in err_str or "model_not_found" in err_str.lower() or "does not exist" in err_str.lower():
+                        continue  # Model bulunamadı, sonraki modeli dene (key'i cezalandırma)
+                    if "429" in err_str or "quota" in err_str.lower() or "rate" in err_str.lower():
+                        _cooldowns[key] = time.time() + 120
+                        break  # Key kotası doldu, sonraki key'e geç
     except Exception as e:
         logger.error(f"[Groq import error] {e}")
     return None
@@ -123,28 +145,38 @@ def call_openai(prompt: str, model: str = "gpt-4o-mini") -> Optional[str]:
         logger.error(f"[OpenAI ERROR] {e}")
     return None
 
-GEMINI_MODEL = "gemini-2.0-flash"  # Standard stable free-tier model for google.genai
-
-def call_gemini(prompt: str, model: str = GEMINI_MODEL) -> Optional[str]:
+def call_gemini(prompt: str, model: Optional[str] = None) -> Optional[str]:
     if not ENABLE_GEMINI: return None
     avail = _available_keys(_GEMINI_KEYS)
     if not avail:
         logger.warning("[Gemini] No available keys (all on cooldown or unconfigured)")
         return None
+
+    models_to_try = [model] if model else GEMINI_MODELS
+    for m in GEMINI_MODELS:
+        if m not in models_to_try:
+            models_to_try.append(m)
+
     try:
         from google import genai
         for key in avail:
-            try:
-                client = genai.Client(api_key=key)
-                resp = client.models.generate_content(
-                    model=model,
-                    contents=prompt
-                )
-                if resp and resp.text:
-                    return resp.text.strip()
-            except Exception as e:
-                logger.error(f"[Gemini REAL ERROR] Key ending ...{key[-4:]}: {e}")
-                _cooldowns[key] = time.time() + 300
+            for m in models_to_try:
+                try:
+                    client = genai.Client(api_key=key)
+                    resp = client.models.generate_content(
+                        model=m,
+                        contents=prompt
+                    )
+                    if resp and resp.text:
+                        return resp.text.strip()
+                except Exception as e:
+                    err_str = str(e)
+                    logger.warning(f"[Gemini ERROR] Model '{m}' / Key ...{key[-4:]}: {e}")
+                    if "404" in err_str or "not_found" in err_str.lower() or "no longer available" in err_str.lower():
+                        continue  # Model yok, sonraki modeli dene
+                    if "429" in err_str or "quota" in err_str.lower() or "resource_exhausted" in err_str.lower():
+                        _cooldowns[key] = time.time() + 300
+                        break  # Kota doldu, sonraki key'e geç
     except Exception as e:
         logger.error(f"[Gemini import error] {e}")
     return None
@@ -181,50 +213,50 @@ def _llm_chain(prompt: str, fallback: str = "", max_tokens: int = 900) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
-    """Tek bir LLM çağrısı ile tüm SEO metadatayı (Title, Tags, Hook, SEO Description) üretir."""
+    """Tek bir LLM çağrısı ile tüm SEO metadatayı (High-CTR Title, Tags, Hook, SEO Description) üretir."""
     brand_style = (
-        "Style: Data-driven, analytical, no-hype. Language: ALWAYS US ENGLISH. Tone: Global Professional. "
+        "Style: Data-driven, authoritative, highly engaging, analytical. Language: ALWAYS US ENGLISH. "
         "Identity: Evcarix — The #1 Electric Vehicle Data Channel. Motto: 'No hype. Just numbers.'"
     )
 
     if is_long:
         prompt = (
-            f"Generate EXPERT YouTube SEO metadata for a 5-10 minute deep-dive EV video about: '{topic}'.\n"
+            f"Generate HIGH-CTR VIRAL YouTube SEO metadata for a 5-10 minute deep-dive EV video about: '{topic}'.\n"
             f"{brand_style}\n"
-            "SEO RULES:\n"
-            "1. Generate TWO TITLE VERSIONS (Version A: Fact-based, Version B: Curiosity-based).\n"
-            "2. Max 70 chars per title. High-CTR. Put main search keywords at the absolute BEGINNING.\n"
-            "3. TAGS: 20 high-ranking tags including broad and specific search terms.\n"
-            "4. DESCRIPTION HOOK: Two different opener lines (Hook A and Hook B).\n"
-            "5. SEO DESCRIPTION: A detailed, keyword-rich description paragraph (3-4 sentences) that naturally describes the topic for search algorithm indexation.\n"
+            "CRITICAL VIRAL SEO RULES:\n"
+            "1. TITLES: Generate 2 ULTRA HIGH-CTR TITLES (Version A: Shocking Fact/Stat, Version B: Curiosity/Exposed).\n"
+            "2. TITLE FORMAT: Max 65 chars. Place main search keywords in the FIRST 3 WORDS. Use emotional hooks, numbers, or brackets like [DATA], [EXPOSED], [REVEALED].\n"
+            "3. TAGS: 20 high-traffic, low-competition tags combining broad EV terms + specific topic keywords.\n"
+            "4. HOOKS: 2 irresistible opening hooks (Hook A and Hook B) designed to maximize audience retention.\n"
+            "5. SEO DESCRIPTION: A search-engine optimized 3-sentence summary packed with high-volume search queries.\n"
             "Return ONLY JSON:\n"
             "{\n"
-            "  \"title_a\": \"[FACT TITLE]\",\n"
-            "  \"title_b\": \"[CURIOSITY TITLE]\",\n"
+            "  \"title_a\": \"[SHOCKING FACT TITLE]\",\n"
+            "  \"title_b\": \"[CURIOSITY EXPOSED TITLE]\",\n"
             "  \"tags\": [\"tag1\", \"tag2\", ...],\n"
-            "  \"hook_a\": \"[HOOK VERSION A]\",\n"
-            "  \"hook_b\": \"[HOOK VERSION B]\",\n"
+            "  \"hook_a\": \"[RETENTION HOOK VERSION A]\",\n"
+            "  \"hook_b\": \"[RETENTION HOOK VERSION B]\",\n"
             "  \"keywords\": [\"kw1\", \"kw2\", ...],\n"
-            "  \"seo_description\": \"[Detailed SEO Description Paragraph]\"\n"
+            "  \"seo_description\": \"[Rich SEO Description]\"\n"
             "}"
         )
     else:
         prompt = (
-            f"Generate VIRAL YouTube Shorts SEO metadata for: '{topic}'.\n"
+            f"Generate VIRAL HIGH-ENGAGEMENT YouTube Shorts SEO metadata for: '{topic}'.\n"
             f"{brand_style}\n"
-            "SEO RULES:\n"
-            "1. Generate TWO TITLE VERSIONS (Version A: Number-heavy, Version B: Question-based).\n"
-            "2. Max 55 chars per title. High-CTR viral style. Use numbers (%, $, Miles, kWh).\n"
-            "3. TAGS: 15 high-velocity trending tags including viral short-form tags. MUST include: 'Shorts', 'EVShorts', 'ElectricVehicles'.\n"
-            "4. HOOK: Two punchy, keyword-rich opening sentences (Hook A and Hook B). Start with a shocking stat.\n"
-            "5. SEO SUMMARY: A short 2-sentence punchy summary filled with search terms.\n"
+            "CRITICAL VIRAL SEO RULES:\n"
+            "1. TITLES: Generate 2 ULTRA HIGH-CTR SHORT TITLES (Version A: Number-heavy, Version B: Curiosity question).\n"
+            "2. TITLE FORMAT: Max 50 chars. Highly punchy & viral. Use numbers (%, $, Miles, kWh) and emojis.\n"
+            "3. TAGS: 15 high-velocity viral tags. MUST include: 'Shorts', 'EVShorts', 'ElectricVehicles', 'EVData'.\n"
+            "4. HOOKS: 2 punchy, attention-grabbing opening lines starting with a shocking statistic.\n"
+            "5. SEO SUMMARY: A short 2-sentence punchy summary filled with trending search terms.\n"
             "Return ONLY JSON:\n"
             "{\n"
-            "  \"title_a\": \"[NUMBER TITLE]\",\n"
-            "  \"title_b\": \"[QUESTION TITLE]\",\n"
+            "  \"title_a\": \"[VIRAL NUMBER TITLE]\",\n"
+            "  \"title_b\": \"[VIRAL QUESTION TITLE]\",\n"
             "  \"tags\": [\"tag1\", \"tag2\", ...],\n"
-            "  \"hook_a\": \"[PUNCHY HOOK A]\",\n"
-            "  \"hook_b\": \"[PUNCHY HOOK B]\",\n"
+            "  \"hook_a\": \"[VIRAL HOOK A]\",\n"
+            "  \"hook_b\": \"[VIRAL HOOK B]\",\n"
             "  \"seo_description\": \"[Short SEO Summary]\"\n"
             "}"
         )
@@ -398,12 +430,10 @@ class CreativeWriter:
             f"— How this compares across USA, Europe & China\n"
             f"— What this means for EV buyers in 2025-2026\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔔 ABOUT EVTRIX\n"
+            f"💬 JOIN THE CONVERSATION\n"
             f"━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"Evcarix is an independent EV data channel covering electric vehicles, battery technology, "
-            f"autonomous driving, and the future of clean transport. "
-            f"We publish data-driven content every week — no sponsored bias, no hype.\n\n"
-            f"❓ What surprised you most about {topic}? Comment below — we read every reply.\n\n"
+            f"❓ Which number surprised you MOST about {topic}? Drop your answer below — best comment gets pinned! 📌\n"
+            f"👇 EV owners: does this match YOUR real experience? Tell us in 1 sentence!\n\n"
             f"🔍 Keywords: {kw_str}\n\n"
             f"{' '.join(hashtag_tags)}\n\n"
             f"---\n"
@@ -464,13 +494,17 @@ class CreativeWriter:
             f"— Market trends in the US, EU, and Chinese EV markets (2024-2026 data)\n"
             f"— Future impact: what the {topic} trend means for EV buyers & investors\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔔 ABOUT EVTRIX\n"
+            f"🔔 ABOUT EVCARIX\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"Evcarix is an independent EV data and analysis channel. We cover electric vehicles, "
             f"battery technology, autonomous driving systems, EV charging infrastructure, and the "
             f"future of sustainable transport. Our content is 100% data-driven — no sponsored "
             f"opinions, no manufacturer bias. Subscribe for new analysis every week.\n\n"
-            f"❓ What surprised you most about {topic}? Drop your take in the comments — we reply to everyone.\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💬 JOIN THE CONVERSATION\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔥 Hot take: what's the most MISUNDERSTOOD thing about {topic}? Drop it below — best insight gets pinned! 📌\n"
+            f"👇 After watching: Game-changer or overhyped? Cast your vote in the comments!\n\n"
             f"🔍 Keywords: {kw_str}\n\n"
             f"{' '.join(hashtag_tags)}\n\n"
             f"---\n"

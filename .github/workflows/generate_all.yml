@@ -36,10 +36,6 @@ on:
         default: false
         type: boolean
 
-  # Also run every Monday at 06:00 UTC — generate any new/missing topics
-  schedule:
-    - cron: '0 6 * * 1'
-
 jobs:
   generate:
     runs-on: ubuntu-24.04

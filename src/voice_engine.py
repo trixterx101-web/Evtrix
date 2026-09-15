@@ -81,9 +81,13 @@ class VoiceEngine:
             exist_ok=True,
         )
 
-        communicate       = edge_tts.Communicate(text, voice)
-        sentence_timings  = []   # raw SentenceBoundary events
-        audio_bytes       = bytearray()
+        communicate      = edge_tts.Communicate(text, voice)
+        sentence_timings = []   # raw SentenceBoundary events
+        audio_bytes      = bytearray()
+
+        stream_success = False
+        # Calculate dynamic timeout: min 120s, up to 300s for long texts
+        stream_timeout = max(120, min(300, len(text) // 10))
 
         try:
             async def _stream_with_timeout():
@@ -97,31 +101,45 @@ class VoiceEngine:
                             "end":   (chunk["offset"] + chunk["duration"]) / 10_000_000,
                         })
 
-            await asyncio.wait_for(_stream_with_timeout(), timeout=120)
+            await asyncio.wait_for(_stream_with_timeout(), timeout=stream_timeout)
+            if len(audio_bytes) >= 512:
+                stream_success = True
+                with open(output_path, "wb") as f:
+                    f.write(audio_bytes)
 
         except asyncio.TimeoutError:
-            logger.error("[VoiceEngine] TTS stream timed out after 120s")
-            return None
+            logger.warning(f"[VoiceEngine] TTS stream timed out after {stream_timeout}s — attempting fallback save()")
         except Exception as e:
-            logger.error(f"[VoiceEngine] TTS stream error: {e}")
-            return None
+            logger.warning(f"[VoiceEngine] TTS stream error: {e} — attempting fallback save()")
 
-        # Write audio to disk
-        if len(audio_bytes) < 512:
-            logger.error("[VoiceEngine] Audio data too small — TTS probably failed")
-            return None
+        # Fallback 1: communicate.save() if stream failed or timed out
+        if not stream_success:
+            try:
+                logger.info("[VoiceEngine] Running fallback communicate.save()...")
+                await communicate.save(output_path)
+                if os.path.exists(output_path) and os.path.getsize(output_path) >= 1024:
+                    logger.info("[VoiceEngine] ✅ Fallback communicate.save() succeeded!")
+                    stream_success = True
+            except Exception as e:
+                logger.error(f"[VoiceEngine] Fallback communicate.save() failed: {e}")
 
-        with open(output_path, "wb") as f:
-            f.write(audio_bytes)
+        # Fallback 2: Paragraph chunking if direct save failed
+        if not stream_success:
+            try:
+                logger.info("[VoiceEngine] Running paragraph-chunked TTS generation...")
+                stream_success = await self._generate_edge_chunked(text, voice, output_path)
+            except Exception as e:
+                logger.error(f"[VoiceEngine] Paragraph-chunked TTS failed: {e}")
 
-        if not os.path.exists(output_path) or os.path.getsize(output_path) < 1024:
-            logger.error(f"[VoiceEngine] Output file invalid: {output_path}")
+        if not stream_success or not os.path.exists(output_path) or os.path.getsize(output_path) < 1024:
+            logger.error(f"[VoiceEngine] Output file invalid or TTS completely failed: {output_path}")
             return None
 
         # Get exact duration via ffprobe
         duration = await self._get_duration(output_path)
         if duration <= 0:
-            duration = len(audio_bytes) / (16_000 * 2)   # rough fallback
+            file_size = os.path.getsize(output_path)
+            duration = file_size / (16_000 * 2)   # rough fallback
 
         # ── Build precise subtitle chunks from SentenceBoundary events ──────
         if sentence_timings:
@@ -132,7 +150,7 @@ class VoiceEngine:
                     _sentence_to_chunks(s["text"], s["start"], s["end"], target_words=5)
                 )
         else:
-            # Fallback: if no boundaries received (network glitch etc.)
+            # Fallback: if no boundaries received (network glitch, fallback save used, etc.)
             logger.warning("[VoiceEngine] No SentenceBoundary events — using fallback timings")
             subtitle_chunks = self._generate_fallback_chunks(text, duration)
 
@@ -144,6 +162,54 @@ class VoiceEngine:
             "subtitle_chunks": subtitle_chunks,   # explicit key for bottom_panel / editor
             "duration":        duration,
         }
+
+    async def _generate_edge_chunked(self, text: str, voice: str, output_path: str) -> bool:
+        """Splits long text into paragraph chunks and concatenates audio via ffmpeg."""
+        import tempfile
+        import shutil
+        import edge_tts
+
+        paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
+        if not paragraphs:
+            paragraphs = [text]
+
+        temp_files = []
+        try:
+            for idx, p in enumerate(paragraphs):
+                tmp_p = tempfile.NamedTemporaryFile(delete=False, suffix=f"_{idx}.mp3")
+                tmp_p.close()
+                c = edge_tts.Communicate(p, voice)
+                await c.save(tmp_p.name)
+                if os.path.exists(tmp_p.name) and os.path.getsize(tmp_p.name) > 256:
+                    temp_files.append(tmp_p.name)
+
+            if not temp_files:
+                return False
+
+            if len(temp_files) == 1:
+                shutil.move(temp_files[0], output_path)
+                return True
+
+            concat_list = tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt")
+            for tf in temp_files:
+                concat_list.write(f"file '{tf.replace('\\\\', '/')}'\n")
+            concat_list.close()
+
+            cmd = [
+                "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+                "-i", concat_list.name, "-c", "copy", output_path
+            ]
+            res = subprocess.run(cmd, capture_output=True)
+            if os.path.exists(concat_list.name):
+                os.unlink(concat_list.name)
+            return res.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 1024
+        finally:
+            for tf in temp_files:
+                if os.path.exists(tf):
+                    try:
+                        os.unlink(tf)
+                    except Exception:
+                        pass
 
     # ── Private: Kokoro (skeleton) ─────────────────────────────────────────────
 

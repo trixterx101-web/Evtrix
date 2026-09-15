@@ -77,18 +77,7 @@ def _improve_title_with_gemini(topic: str, raw_title: str) -> str:
     raw_title zayıfsa Gemini yeniden üretir.
     """
     try:
-        from google import genai
-
-        keys = [k for k in [
-            os.getenv("GEMINI_API_KEY"),
-            os.getenv("GEMINI_API_KEY_2"),
-            os.getenv("GEMINI_API_KEY_3"),
-            os.getenv("GEMINI_API_KEY_4"),
-            os.getenv("GEMINI_API_KEY_5"),
-        ] if k]
-
-        if not keys:
-            return raw_title
+        from src.writer import call_gemini, call_groq
 
         prompt = f"""You are a YouTube title expert for the channel "Evcarix" — the #1 EV data channel. Topics: EVs, AI, Battery Tech, Robotics, Future Technology.
 
@@ -112,29 +101,11 @@ Generate ONE viral YouTube title following these rules:
 
 Return ONLY the title. No quotes. No explanation."""
 
-        # Tüm key'leri dene, quota aşılırsa sıradakine geç
-        response = None
-        for key in keys:
-            try:
-                client = genai.Client(api_key=key)
-                resp = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=prompt
-                )
-                if resp and resp.text:
-                    response = resp
-                    break  # Başarılıysa dur
-            except Exception as key_err:
-                err_str = str(key_err)
-                if "429" in err_str or "quota" in err_str.lower():
-                    print(f"[Brain] Key kota aşıldı, sıradaki deneniyor...")
-                    continue
-                raise key_err
-
-        if not response:
+        res = call_gemini(prompt) or call_groq(prompt)
+        if not res:
             return raw_title
 
-        new_title = response.text.strip().strip('"').strip("'")
+        new_title = res.strip().strip('"').strip("'")
 
         # Kalite kontrolü
         if len(new_title) < 20 or len(new_title) > 100:
@@ -225,8 +196,12 @@ class EvcarixBrain:
         # auto veya trend modunda, her iki video tipi için de denenir
         if content_mode in ("auto", "trend") and self._topic_queue:
             try:
-                # Kuyruk boşsa önce kaynaklardan doldur
-                if len(self._topic_queue._queue) == 0:
+                force_fresh = os.getenv("FORCE_FRESH_TREND", "").lower() == "true"
+                if force_fresh:
+                    # Manuel / Cuma run: her zaman canlı trend verisiyle doldur
+                    print("[Brain] 🔥 FORCE_FRESH_TREND — Anlık YouTube trend verileri çekiliyor...")
+                    self._topic_queue.refresh(force=True)
+                elif len(self._topic_queue._queue) == 0:
                     print("[Brain] 📥 Kuyruk boş, kaynaklar taranıyor...")
                     self._topic_queue.refresh()
 

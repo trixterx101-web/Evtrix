@@ -174,11 +174,18 @@ class TopicQueue:
 
     # ── Kaynak: YouTube Trending ──────────────────────────────────────
     def _fetch_youtube_trending(self) -> list[dict]:
+        """YouTube'un en çok izlenen videolarını Science&Tech + Autos kategorilerinden çek."""
         api_key = os.getenv("YOUTUBE_API_KEY")
         if not api_key:
             return []
         items = []
-        for region in ["US", "GB", "DE"]:
+        # Bölge + Kategori kombinasyonları
+        # 28 = Science & Tech | 2 = Autos & Vehicles
+        combos = [
+            ("US", "28"), ("GB", "28"), ("DE", "28"),
+            ("US", "2"),  ("GB", "2"),
+        ]
+        for region, cat_id in combos:
             try:
                 r = requests.get(
                     "https://www.googleapis.com/youtube/v3/videos",
@@ -186,7 +193,7 @@ class TopicQueue:
                         "part": "snippet,statistics",
                         "chart": "mostPopular",
                         "regionCode": region,
-                        "videoCategoryId": "28",  # Science & Tech
+                        "videoCategoryId": cat_id,
                         "maxResults": 15,
                         "key": api_key
                     }, timeout=10
@@ -203,25 +210,52 @@ class TopicQueue:
 
     # ── Kaynak: YouTube EV Arama ──────────────────────────────────────
     def _fetch_youtube_ev_search(self) -> list[dict]:
+        """YouTube'da trend EV/AI aramaları yapıp GERCEK view count ile döndür."""
         api_key = os.getenv("YOUTUBE_API_KEY")
         if not api_key:
             return []
+        # En çok izlenen EV/AI/Robotics konularını kapsayan geniş sorgu havuzu
         queries = [
-            "electric car real world test 2026",
-            "EV battery technology breakthrough 2026",
-            "solid state battery latest news",
-            "Tesla vs BYD comparison test",
-            "EV charging speed comparison 2026",
-            "humanoid robot factory 2026",
-            "AI self driving car test 2026",
-            "electric car true cost analysis",
-            "EV winter range test cold weather",
-            "V2G vehicle to grid technology 2026",
+            # ⚡ EV Performans & Test
+            "electric car real world range test 2026",
+            "EV battery degradation long term data",
+            "EV vs gas car total cost 2026",
+            "800V ultra fast charging real test",
+            "best electric car 2026 real test review",
+            "EV winter range cold weather test",
+            "electric car charging speed comparison 2026",
+            # 🔋 Batarya Teknolojisi
+            "solid state battery breakthrough 2026",
+            "LFP vs NMC battery real world comparison",
+            "sodium ion battery vs lithium latest",
+            "silicon anode battery real performance",
+            "EV battery technology future 2026",
+            # 🚗 Marka Karşılaştirmaları
+            "Tesla vs BYD efficiency real world test",
+            "BYD electric car range test review",
+            "Tesla autopilot FSD real world 2026",
+            "Rivian vs Tesla comparison data",
+            "Hyundai Kia EV real world test",
+            # 🤖 AI & Robotics
+            "humanoid robot factory 2026 real footage",
+            "Tesla Optimus robot update 2026",
+            "AI self driving car real world test 2026",
+            "autonomous vehicle safety data 2026",
+            "Waymo robotaxi real experience 2026",
+            # 💡 Gelecek Teknoloji
+            "vehicle to grid V2G real world test",
+            "wireless EV charging real test",
+            "EV charging infrastructure 2026 update",
+            "electric truck real world range payload test",
+            "EV depreciation data 2026 real numbers",
         ]
         items = []
-        for query in random.sample(queries, min(4, len(queries))):
+        # Her çalışmada rastgele 6 sorgu seç (API kotayı koru)
+        selected_queries = random.sample(queries, min(6, len(queries)))
+        for query in selected_queries:
             try:
-                r = requests.get(
+                # Adım 1: Arama yap
+                search_r = requests.get(
                     "https://www.googleapis.com/youtube/v3/search",
                     params={
                         "part": "snippet",
@@ -230,16 +264,40 @@ class TopicQueue:
                         "order": "viewCount",
                         "relevanceLanguage": "en",
                         "maxResults": 8,
+                        "publishedAfter": "2024-01-01T00:00:00Z",
                         "key": api_key
                     }, timeout=10
                 )
-                r.raise_for_status()
-                for it in r.json().get("items", []):
+                search_r.raise_for_status()
+                search_items = search_r.json().get("items", [])
+                video_ids = [it["id"]["videoId"] for it in search_items if it["id"].get("videoId")]
+                if not video_ids:
+                    continue
+
+                # Adım 2: Gerçek view count'ı çek
+                stats_r = requests.get(
+                    "https://www.googleapis.com/youtube/v3/videos",
+                    params={
+                        "part": "snippet,statistics",
+                        "id": ",".join(video_ids),
+                        "key": api_key
+                    }, timeout=10
+                )
+                stats_r.raise_for_status()
+                for it in stats_r.json().get("items", []):
                     title = it["snippet"].get("title", "")
+                    views = int(it.get("statistics", {}).get("viewCount", 0) or 0)
                     if self._is_relevant(title):
-                        items.append({"topic": title, "source": "youtube_ev_search", "view_count": 0})
+                        items.append({
+                            "topic": title,
+                            "source": "youtube_ev_search",
+                            "view_count": views
+                        })
             except Exception as e:
-                print(f"[TopicQueue] YouTube EV search hata ({query[:30]}): {e}")
+                print(f"[TopicQueue] YouTube EV search hata ({query[:35]}): {e}")
+        # View count'a göre sırala (en çok izlenen öne çıksın)
+        items.sort(key=lambda x: x["view_count"], reverse=True)
+        print(f"[TopicQueue] YouTube EV search: {len(items)} trend konu toplandı")
         return items
 
     # ── Kaynak: EV RSS Haber Akışları ────────────────────────────────
@@ -317,7 +375,17 @@ class TopicQueue:
         """
         Tüm kaynaklardan konu toplar, puanlar ve kuyruğa ekler.
         force=True → mevcut kuyruk temizlenir ve sıfırdan doldurulur.
+        FORCE_FRESH_TREND env varı da force=True gibi davranır.
         """
+        # FORCE_FRESH_TREND: manuel tetiklemede her zaman taze trend verisi al
+        if os.getenv("FORCE_FRESH_TREND", "").lower() == "true":
+            force = True
+            print("[TopicQueue] 🔥 FORCE_FRESH_TREND aktif — kuyruk temizlenip yenileniyor...", flush=True)
+
+        if force:
+            self._queue = []
+            print("[TopicQueue] 🔄 Kuyruk temizlendi.", flush=True)
+
         if not force and len(self._queue) >= QUEUE_MIN_SIZE:
             print(f"[TopicQueue] Kuyrukta {len(self._queue)} konu var, yenileme gerekmez.")
             return len(self._queue)
@@ -326,7 +394,7 @@ class TopicQueue:
 
         raw: list[dict] = []
         raw += self._fetch_youtube_trending()
-        raw += self._fetch_youtube_ev_search()
+        raw += self._fetch_youtube_ev_search()  # ⭐ Güncel view count ile
         raw += self._fetch_ev_rss()
         raw += self._fetch_reddit()
         raw += self._fetch_google_trends()
@@ -375,8 +443,10 @@ class TopicQueue:
         print(f"[TopicQueue] ✅ {added} yeni konu eklendi → Toplam: {len(self._queue)}", flush=True)
 
         # En yüksek puanlı 5 konuyu logla
+        print("[TopicQueue] 🏆 TOP 5 TREND KONU:", flush=True)
         for i, item in enumerate(self._queue[:5], 1):
-            print(f"  [{i}] ({item['score']}p) [{item['source']}] {item['topic'][:70]}")
+            views_str = f"{item['view_count']:,}" if item['view_count'] else "?"
+            print(f"  [{i}] ({item['score']}p) 👁 {views_str} views [{item['source']}] {item['topic'][:70]}")
 
         return len(self._queue)
 
