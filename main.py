@@ -74,16 +74,29 @@ class EvcarixOrchestrator:
         self.character_image = os.getenv("CHARACTER_IMAGE", "assets/characters/evcarix_host.png")
 
         secret_path = os.getenv("YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json")
-        if os.path.exists(secret_path):
+        has_credentials = (
+            os.path.exists(secret_path) or
+            os.path.exists("token.json") or
+            bool(os.getenv("YOUTUBE_REFRESH_TOKEN")) or
+            bool(os.getenv("YOUTUBE_TOKEN_JSON")) or
+            bool(os.getenv("CI") or os.getenv("GITHUB_ACTIONS"))
+        )
+
+        if has_credentials:
             try:
-                log("[Uploader] YouTube Uploader baslatiliyor...")
+                log("[Uploader] YouTube Uploader başlatılıyor...")
                 from src.uploader import YouTubeUploader
-                self.uploader = YouTubeUploader(secret_path)
-                log("[Uploader] YouTube Uploader basariyla baslatildi.")
+                self.uploader = YouTubeUploader(secret_path if os.path.exists(secret_path) else None)
+                if self.uploader and self.uploader.youtube:
+                    log("[Uploader] ✅ YouTube Uploader başarıyla başlatıldı.")
+                else:
+                    log("[Uploader] ⚠️ YouTube Uploader kimlik doğrulaması tamamlanamadı (self.uploader.youtube is None).")
             except Exception as e:
-                log(f"[Uploader] YouTube uploader başlatılamadı: {e}")
+                log(f"[Uploader] ❌ YouTube uploader başlatılamadı: {e}")
                 log("[Uploader] ⚠️ UYARI: Video üretilecek ancak otomatik yükleme yapılmayacak.")
                 self.uploader = None
+        else:
+            log("[Uploader] ⚠️ Kimlik bilgisi dosyası veya secret bulunamadı. Yükleme pasif.")
 
     async def run_daily_shorts_workflow(self, forced_topic: str = None):
         now  = datetime.datetime.now()

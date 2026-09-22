@@ -71,7 +71,10 @@ class YouTubeUploader:
 
             if not creds or not creds.valid:
                 if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
-                    print("[Uploader] ❌ CI: Geçerli kimlik bilgisi yok. YOUTUBE_REFRESH_TOKEN secret'ını kontrol edin.", flush=True)
+                    print("[Uploader] ❌ CI: Geçerli kimlik bilgisi yok. YOUTUBE_REFRESH_TOKEN, YOUTUBE_CLIENT_ID ve YOUTUBE_CLIENT_SECRET secret'larını kontrol edin.", flush=True)
+                    return None
+                if not self.client_secrets_file or not os.path.exists(self.client_secrets_file):
+                    print(f"[Uploader] ❌ client_secrets_file bulunamadı: {self.client_secrets_file}", flush=True)
                     return None
                 print("[Uploader] Tarayıcı üzerinden giriş bekleniyor...", flush=True)
                 flow = InstalledAppFlow.from_client_secrets_file(self.client_secrets_file, self.scopes)
@@ -160,6 +163,7 @@ class YouTubeUploader:
                 while response is None:
                     status, response = request.next_chunk()
                     if status:
+                        print(f"Yükleniyor: %{int(status.progress() * 100)}")
                 print(f"Yükleme Tamamlandı! Video ID: {response['id']}")
                 video_id = response['id']
                 
