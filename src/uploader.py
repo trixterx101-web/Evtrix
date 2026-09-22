@@ -160,9 +160,21 @@ class YouTubeUploader:
                 while response is None:
                     status, response = request.next_chunk()
                     if status:
-                        print(f"Yükleniyor: %{int(status.progress() * 100)}")
                 print(f"Yükleme Tamamlandı! Video ID: {response['id']}")
                 video_id = response['id']
+                
+                # Gizlilik ve yükleme durumu kontrolü
+                status_info = response.get("status", {})
+                privacy = status_info.get("privacyStatus", "unknown")
+                upload_status = status_info.get("uploadStatus", "unknown")
+                print(f"[Uploader] 📌 Gizlilik Durumu: {privacy}", flush=True)
+                print(f"[Uploader] 📌 Yükleme Durumu : {upload_status}", flush=True)
+
+                if privacy == "private":
+                    print("⚠️ UYARI: YouTube bu videoyu 'Gizli' (Private) olarak kilitledi!", flush=True)
+                    print("   Neden: Google Cloud Console'da OAuth Consent Screen 'Testing' modunda olduğu", flush=True)
+                    print("   veya API uygulaması henüz doğrulanmadığı için YouTube API yüklemeleri otomatik Gizli'ye çeker.", flush=True)
+                    print(f"   👉 Videoyu yayına almak için: https://studio.youtube.com/video/{video_id}/edit -> Gizlilik -> Herkese Açık yapın.", flush=True)
                 
                 # Add to playlist if specified
                 if playlist_name and video_id:
