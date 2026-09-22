@@ -63,8 +63,8 @@ def _available_keys(keys: list[str]) -> list[str]:
 # PROVIDERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-GROQ_MODELS = ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "llama3-70b-8192", "mixtral-8x7b-32768"]
-GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-3.6-flash", "gemini-1.5-pro"]
+GROQ_MODELS = ["llama-3.1-8b-instant", "llama3-8b-8192", "gemma2-9b-it", "llama-3.1-70b-versatile"]
+GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"]
 
 def call_groq(prompt: str, model: Optional[str] = None, max_tokens: int = 900) -> Optional[str]:
     avail = _available_keys(_GROQ_KEYS)
