@@ -2,7 +2,7 @@ name: Evcarix Ultra-HD Pipeline v2
 
 on:
   schedule:
-    - cron: '0 12 * * 5'   # TR 15:00 — Cuma — Long + Short Video
+    - cron: '0 12 * * *'   # Her gün TSİ 15:00 — Otomatik YouTube Video Üretimi & Yükleme
   workflow_dispatch:
     inputs:
       video_type:
@@ -157,10 +157,14 @@ jobs:
             echo "FORCED_TOPIC=${{ github.event.inputs.forced_topic }}" >> $GITHUB_ENV
             echo "FORCE_FRESH_TREND=true" >> $GITHUB_ENV
           else
-            # TR 15:00 — Cuma — Long Video (ve otomatik Short)
+            # Otomatik zamanlama (Her gün TSİ 15:00)
             echo "CONTENT_MODE=trend" >> $GITHUB_ENV
-            echo "VIDEO_TYPE=long" >> $GITHUB_ENV
             echo "FORCE_FRESH_TREND=true" >> $GITHUB_ENV
+            if [ "$(date +%u)" -eq 5 ]; then
+              echo "VIDEO_TYPE=long" >> $GITHUB_ENV
+            else
+              echo "VIDEO_TYPE=short" >> $GITHUB_ENV
+            fi
           fi
           echo "✅ Content Mode: $CONTENT_MODE"
           echo "✅ Video Type: $VIDEO_TYPE"
