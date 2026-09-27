@@ -366,6 +366,8 @@ def _get_base_image(W, H, st, bg_image=None):
 
 
 def _safe(text: str, max_len: int = 25) -> str:
+    # ASCII dışı karakterleri (Hintçe, Almanca bozuk kare □□ üreten harfleri) temizle
+    text = text.encode("ascii", "ignore").decode("ascii")
     text = re.sub(r"[^\w\s%\-\+\?!.,:/]", "", text)
     return text[:max_len].strip()
 
@@ -411,7 +413,7 @@ def _brand_bar(draw, W, H, a1, a2, label):
     by = H - 72
     draw.rectangle([0, by, W, H], fill=(0, 0, 0))
     draw.rectangle([0, by, W, by + 3], fill=a1)
-    draw.text((50, by + 18), "* EVTRIX", font=_fnt(34), fill=(255, 255, 255))
+    draw.text((50, by + 18), "* Evcarix", font=_fnt(34), fill=(255, 255, 255))
     tag = f"{label} & INSIGHTS"
     tw = int(draw.textlength(tag, font=_fnt(20, False)))
     draw.text((W - tw - 40, by + 24), tag, font=_fnt(20, False), fill=(120, 140, 155))
@@ -763,7 +765,7 @@ def _layout_minimal(W, H, lines, st, bg_image=None):
             draw.line([(x, 0), (x, H)], fill=_mix((8, 8, 12), st["right_bg"], x / W * 0.15))
     draw.rectangle([0, 0, 16, H], fill=a1)
     draw.rectangle([0, 0, W, 6], fill=a1)
-    draw.text((30, 20), f"EVTRIX  //  {st['label']}", font=_fnt(20, False), fill=(100, 110, 125))
+    draw.text((30, 20), f"Evcarix  //  {st['label']}", font=_fnt(20, False), fill=(100, 110, 125))
     # Left text zone: x=20..W//2-20  Right zone: W//2+10..W-20 (big stat)
     max_w_m = W // 2 - 40
     f1 = _auto_font(draw, lines[0], max_w_m, 90)
@@ -796,7 +798,7 @@ def _layout_minimal(W, H, lines, st, bg_image=None):
         sw_px = int(draw.textlength(desc, font=sf))
         draw.text((W-sw_px-30, by+_text_h(draw,big_txt,big_f)+8), desc, font=sf, fill=(130,140,150))
     draw.rectangle([0, H - 72, W, H - 69], fill=a1)
-    draw.text((30, H - 58), "* EVTRIX", font=_fnt(30), fill=(255, 255, 255))
+    draw.text((30, H - 58), "* Evcarix", font=_fnt(30), fill=(255, 255, 255))
     draw.text((W - 200, H - 52), st["label"], font=_fnt(22, False), fill=(80, 90, 100))
     return img
 
@@ -859,7 +861,7 @@ def _layout_cinematic(W, H, lines, st, bg_image=None):
     bar_h = int(H * 0.13)
     draw.rectangle([0, 0, W, bar_h], fill=(0, 0, 0))
     draw.rectangle([0, H - bar_h, W, H], fill=(0, 0, 0))
-    draw.text((40, H - bar_h + 14), "* EVTRIX", font=_fnt(26), fill=(200, 200, 200))
+    draw.text((40, H - bar_h + 14), "* Evcarix", font=_fnt(26), fill=(200, 200, 200))
     tag = f"{st['label']} & INSIGHTS"
     tw_tag = int(draw.textlength(tag, font=_fnt(18, False)))
     draw.text((W - tw_tag - 40, H - bar_h + 18), tag, font=_fnt(18, False), fill=(90, 100, 110))
@@ -972,7 +974,7 @@ def _layout_bold(W, H, lines, st, bg_image=None):
         draw.rectangle([x, 0, x + w, H], fill=a1 if i == 0 else tuple(c // 2 for c in a1))
     draw.rectangle([0, 0, W, 58], fill=(0, 0, 0))
     draw.rectangle([0, 55, W, 58], fill=a1)
-    draw.text((54, 15), f"EVTRIX  |  {st['label']} SERIES", font=_fnt(24), fill=(200, 200, 200))
+    draw.text((54, 15), f"Evcarix  |  {st['label']} SERIES", font=_fnt(24), fill=(200, 200, 200))
     # Left text zone: x=50..W//2
     max_w_b = W // 2 - 20
     f1 = _auto_font(draw, lines[0], max_w_b, 95)

@@ -209,7 +209,7 @@ class AIVideoGenerator:
             f"drawtext=text='{t1}':fontsize=110:fontcolor={acc}:x=(w-tw)/2:y=700-(t*15):shadowcolor=black@0.8:shadowx=4:shadowy=4",
             f"drawtext=text='{t2}':fontsize=110:fontcolor={acc}:x=(w-tw)/2:y=840-(t*15):shadowcolor=black@0.8:shadowx=4:shadowy=4",
             f"drawtext=text='{sub}':fontsize=46:fontcolor=white@0.75:x=(w-tw)/2:y=1010-(t*10)",
-            f"drawtext=text='EVTRIX':fontsize=36:fontcolor={acc}@0.5:x=(w-tw)/2:y=1750", # Marka adı EVTRIX olarak güncellendi! ✅
+            f"drawtext=text='Evcarix':fontsize=36:fontcolor={acc}@0.5:x=(w-tw)/2:y=1750", # Marka adı Evcarix olarak güncellendi! ✅
         ]
 
         vf = ",".join(vf_parts)

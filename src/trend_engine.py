@@ -62,6 +62,10 @@ BLOCKED_TOPICS = [
     "formula", "NASCAR", "rally", "stunt", "prank", "vlog",
     "reaction", "challenge", "india", "hindi", "rupee",
     "three wheeler", "scooter", "moped", "rickshaw",
+    # KURAL 2 forbidden words & non-EV medical/academic terms:
+    "health costs", "gbm", "neural network", "survival predict",
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "an accurate and interpretable", "shorts", "#shorts",
 ]
 
 

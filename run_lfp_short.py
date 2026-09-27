@@ -14,16 +14,16 @@ SCRIPT = (
     "The BMS gets confused and guesses wrong. "
     "When the battery finally balances, the lost range reappears. "
     "It's not dying faster. It's just honest. "
-    "Subscribe to EVTRIX for real EV data."
+    "Subscribe to Evcarix — No hype. Just numbers."
 )
 TITLE       = "The Truth About LFP Battery 'Sudden' Drops"
 DESCRIPTION = (
     "Why do LFP batteries seem to drop range overnight? It's not what you think.\n"
     "We explain the voltage blind zone. No hype. Just numbers.\n\n"
-    "#EVTRIX #ElectricVehicles #LFP #BatteryTech #EVData #Shorts #EVShorts"
+    "#Evcarix #ElectricVehicles #LFP #BatteryTech #EVData #Shorts #EVShorts"
 )
 TAGS = ["ev", "electric vehicle", "lfp battery", "nmc vs lfp",
-        "battery degradation", "ev range", "evtrix", "shorts", "evshorts"]
+        "battery degradation", "ev range", "Evcarix", "Shorts", "EVShorts"]
 
 W, H         = 1080, 1920  # YouTube Shorts resolution (9:16)
 CLIP_SECONDS = 5           # Each clip segment duration

@@ -200,7 +200,7 @@ def generate_episode_thumbnail(title: str, custom_text: str, ts: str) -> str | N
         by = H - 72
         draw.rectangle([0, by, W, H], fill=(0, 0, 0))
         draw.rectangle([0, by, W, by + 3], fill=ACCENT)
-        draw.text((50, by + 18), "* EVTRIX", font=_fnt(34), fill=WHITE)
+        draw.text((50, by + 18), "* Evcarix", font=_fnt(34), fill=WHITE)
         tag = "DATA JOURNALISM"
         tw  = int(draw.textlength(tag, font=_fnt(20, bold=False)))
         draw.text((W - tw - 40, by + 24), tag, font=_fnt(20, bold=False), fill=GREY)

@@ -103,37 +103,60 @@ class YouTubeUploader:
         503/500 transient sunucu hatalarında exponential backoff ile retry yapar.
         """
         from googleapiclient.errors import ResumableUploadError
-        # Title shortening if needed
-        shorts_title = title[:97] if len(title) > 97 else title
-        
-        # Tags listesine Shorts ekle (Sadece Shorts playlisti ise)
-        final_tags = list(tags) if tags else []
-        if playlist_name == "Short Video":
-            for must_have in ["Shorts", "EVShorts", "ElectricCarShorts"]:
+        # KURAL 2: Title sanitization
+        clean_title = title.replace("&amp;", "&").replace("&AMP;", "&").strip()
+        if clean_title.isupper():
+            clean_title = clean_title.title()
+        if len(clean_title) > 100:
+            clean_title = clean_title[:97] + "..."
+
+        # KURAL 3: Universal Tag List + Long/Short Tag Rules
+        UNIVERSAL_TAGS = [
+            "electric vehicle", "EV", "battery technology", "EV range", "electric car",
+            "Evcarix", "EV data", "EV future", "fast charging", "EV charging",
+            "ev range loss", "EV technology", "clean energy", "sustainable energy",
+            "electric vehicle data", "battery degradation", "EV market", "lfp battery",
+            "solid state battery", "electric car range", "EV industry", "ev battery",
+            "EV data analysis", "electric vehicles 2026", "EV vs gas", "battery cost"
+        ]
+
+        # Tag haznesi oluştur
+        final_tags = list(UNIVERSAL_TAGS)
+        if tags:
+            for t in tags:
+                if t and t not in final_tags:
+                    final_tags.append(t)
+
+        # Video süresi / Tipi 60sn üstündeyse Shorts/EVShorts YASAK (KURAL 3)
+        if is_long or playlist_name == "EV Data Reports":
+            forbidden_short_tags = {"shorts", "evshorts", "#shorts", "#evshorts", "shortsvideo"}
+            final_tags = [t for t in final_tags if str(t).lower() not in forbidden_short_tags]
+            # Açıklamadan da #Shorts / #EVShorts temizle
+            description = re.sub(r'#(Shorts|EVShorts|shorts|evshorts)\b', '', description).strip()
+        elif playlist_name == "Short Video" or not is_long:
+            for must_have in ["Shorts", "EVShorts"]:
                 if must_have not in final_tags:
                     final_tags.append(must_have)
 
-        # YouTube tag gereksinimleri:
-        # - Her tag en az 2 karakter, max 30 karakter
-        # - Toplam max 500 karakter
+        # YouTube tag gereksinimleri: Her tag max 30 char, toplam max 500 char
         cleaned_tags = []
         for tag in final_tags:
-            # Boşluklara ve tirelere izin ver (SEO için önemli), diğer özel karakterleri temizle
             clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', str(tag)).strip()
             if len(clean) >= 2 and len(clean) <= 30:
-                cleaned_tags.append(clean)
+                if clean not in cleaned_tags:
+                    cleaned_tags.append(clean)
 
-        # Toplam karakter limiti kontrol
+        # Toplam karakter limiti kontrol (max 500)
         total_chars = sum(len(t) + 1 for t in cleaned_tags)
-        while total_chars > 500 and cleaned_tags:
+        while total_chars > 495 and cleaned_tags:
             cleaned_tags.pop()
             total_chars = sum(len(t) + 1 for t in cleaned_tags)
 
-        final_tags = cleaned_tags[:40]  # Max 40 tag (YouTube limiti ~500 char)
+        final_tags = cleaned_tags
 
         body = {
             "snippet": {
-                "title": shorts_title,
+                "title": clean_title,
                 "description": description,
                 "tags": final_tags,
                 "categoryId": category_id,
