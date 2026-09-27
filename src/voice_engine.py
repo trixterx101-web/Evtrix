@@ -192,7 +192,8 @@ class VoiceEngine:
 
             concat_list = tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt")
             for tf in temp_files:
-                concat_list.write(f"file '{tf.replace('\\\\', '/')}'\n")
+                tf_path = tf.replace('\\', '/')
+                concat_list.write(f"file '{tf_path}'\n")
             concat_list.close()
 
             cmd = [
