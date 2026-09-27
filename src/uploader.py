@@ -141,16 +141,26 @@ class YouTubeUploader:
         # YouTube tag gereksinimleri: Her tag max 30 char, toplam max 500 char
         cleaned_tags = []
         for tag in final_tags:
-            clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', str(tag)).strip()
+            # 1. Newline ve tab'ları boşluğa çevir
+            clean = re.sub(r'[\r\n\t]', ' ', str(tag))
+            # 2. Sadece harf, rakam, boşluk ve tireye izin ver (virgül, <, > vs sil)
+            clean = re.sub(r'[^a-zA-Z0-9 \-]', '', clean)
+            # 3. Birden fazla boşluğu teke düşür ve sağ/sol boşlukları sil
+            clean = re.sub(r'\s+', ' ', clean).strip()
+            
             if len(clean) >= 2 and len(clean) <= 30:
-                if clean not in cleaned_tags:
+                # Küçük harfe çevirerek mükerrer kontrolü yap
+                if clean.lower() not in [t.lower() for t in cleaned_tags]:
                     cleaned_tags.append(clean)
 
-        # Toplam karakter limiti kontrol (max 500)
-        total_chars = sum(len(t) + 1 for t in cleaned_tags)
-        while total_chars > 495 and cleaned_tags:
-            cleaned_tags.pop()
-            total_chars = sum(len(t) + 1 for t in cleaned_tags)
+        # Toplam karakter limiti kontrol (max 500 char)
+        # YouTube virgüller de dahil olmak üzere toplam uzunluğu sayar
+        while cleaned_tags:
+            total_chars = sum(len(t) for t in cleaned_tags) + len(cleaned_tags) - 1
+            if total_chars > 495:
+                cleaned_tags.pop()
+            else:
+                break
 
         final_tags = cleaned_tags
 
