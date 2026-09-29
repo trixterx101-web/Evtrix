@@ -95,10 +95,92 @@ def _mix(c1, c2, t):
     return tuple(int(c1[i] * (1 - t) + c2[i] * t) for i in range(3))
 
 
-# ── 20 Premium YouTube-Style Thumbnail Palettes (4 Themes × 5 Variations) ──────
-# theme key maps directly to one of the 4 YouTube-style layout functions.
+# ── Premium YouTube-Style Thumbnail Palettes ──────────────────────────────────
+# theme key maps directly to one of the layout functions.
 
 PREMIUM_PALETTES = [
+    # ══════════════════════════════════════════════════════════════════════
+    # THEME 5: "evcarix_pro" — Evcarix Pro Layout (grid + data panel)
+    # Matches shared thumbnail screenshots exactly
+    # ══════════════════════════════════════════════════════════════════════
+    {
+        "theme": "evcarix_pro",
+        "bg": (8, 0, 18), "grid_color": (30, 20, 50),
+        "accent1": (0, 200, 255), "accent2": (255, 200, 0),
+        "title_color": (255, 255, 255),
+        "keyword_color": (0, 200, 255),
+        "badge_label": "CES 2026", "badge_color": (240, 240, 240), "badge_text_color": (0,0,0),
+        "evcarix_badge_color": (0, 160, 220),
+        "status": "DEBUNKED", "status_color": (220, 40, 40),
+        "panel_bg": (12, 6, 22), "panel_border": (0, 180, 220),
+        "stat_colors": [(0,180,220),(255,200,0),(220,40,40),(0,200,100)],
+        "footer_color": (0, 180, 220),
+    },
+    {
+        "theme": "evcarix_pro",
+        "bg": (5, 18, 5), "grid_color": (15, 40, 15),
+        "accent1": (0, 230, 80), "accent2": (255, 200, 0),
+        "title_color": (255, 200, 0),
+        "keyword_color": (255, 80, 80),
+        "badge_label": "PROVEN", "badge_color": (0, 180, 60), "badge_text_color": (255,255,255),
+        "evcarix_badge_color": (0, 150, 50),
+        "status": "PROVEN", "status_color": (0, 190, 60),
+        "panel_bg": (6, 22, 6), "panel_border": (0, 180, 60),
+        "stat_colors": [(220,40,40),(0,200,80),(255,200,0),(0,160,220)],
+        "footer_color": (0, 200, 80),
+    },
+    {
+        "theme": "evcarix_pro",
+        "bg": (10, 0, 30), "grid_color": (28, 10, 55),
+        "accent1": (180, 0, 255), "accent2": (255, 200, 0),
+        "title_color": (255, 255, 255),
+        "keyword_color": (180, 0, 255),
+        "badge_label": "DEEP DIVE", "badge_color": (140, 0, 200), "badge_text_color": (255,255,255),
+        "evcarix_badge_color": (120, 0, 180),
+        "status": "DEEP DIVE", "status_color": (160, 0, 230),
+        "panel_bg": (12, 4, 30), "panel_border": (160, 0, 230),
+        "stat_colors": [(180,0,255),(0,200,180),(255,200,0),(220,40,40)],
+        "footer_color": (180, 0, 255),
+    },
+    {
+        "theme": "evcarix_pro",
+        "bg": (18, 5, 0), "grid_color": (40, 15, 5),
+        "accent1": (255, 80, 0), "accent2": (255, 220, 0),
+        "title_color": (255, 255, 255),
+        "keyword_color": (255, 80, 0),
+        "badge_label": "SHOCKING", "badge_color": (200, 60, 0), "badge_text_color": (255,255,255),
+        "evcarix_badge_color": (180, 50, 0),
+        "status": "SHOCKING", "status_color": (255, 80, 0),
+        "panel_bg": (20, 8, 0), "panel_border": (255, 100, 0),
+        "stat_colors": [(255,80,0),(0,220,120),(255,220,0),(0,180,220)],
+        "footer_color": (255, 120, 0),
+    },
+    {
+        "theme": "evcarix_pro",
+        "bg": (0, 8, 20), "grid_color": (10, 22, 45),
+        "accent1": (0, 180, 255), "accent2": (255, 220, 0),
+        "title_color": (255, 255, 255),
+        "keyword_color": (0, 220, 180),
+        "badge_label": "REAL DATA", "badge_color": (0, 120, 200), "badge_text_color": (255,255,255),
+        "evcarix_badge_color": (0, 100, 180),
+        "status": "REAL DATA", "status_color": (0, 180, 255),
+        "panel_bg": (0, 10, 25), "panel_border": (0, 160, 220),
+        "stat_colors": [(0,180,255),(255,200,0),(0,220,120),(220,40,40)],
+        "footer_color": (0, 180, 255),
+    },
+    {
+        "theme": "evcarix_pro",
+        "bg": (5, 5, 5), "grid_color": (22, 22, 22),
+        "accent1": (255, 220, 0), "accent2": (220, 40, 40),
+        "title_color": (255, 220, 0),
+        "keyword_color": (255, 255, 255),
+        "badge_label": "EXPOSED", "badge_color": (180, 30, 30), "badge_text_color": (255,255,255),
+        "evcarix_badge_color": (160, 25, 25),
+        "status": "EXPOSED", "status_color": (220, 40, 40),
+        "panel_bg": (8, 8, 8), "panel_border": (255, 200, 0),
+        "stat_colors": [(255,220,0),(220,40,40),(0,200,120),(0,180,255)],
+        "footer_color": (255, 200, 0),
+    },
     # ══════════════════════════════════════════════════════════════════════
     # THEME 1: "shocking" — Purple/AI/Prediction (bkz. Image 1)
     # ══════════════════════════════════════════════════════════════════════
@@ -1584,6 +1666,234 @@ def _layout_yt_scam(W, H, lines, st, bg_image=None):
     return img
 
 
+# ── YouTube Style Layout 5: EVCARIX PRO (Grid + Data Panel) ───────────────────
+def _layout_yt_evcarix_pro(W, H, lines, st, bg_image=None):
+    """
+    Matches the shared Evcarix thumbnail screenshots:
+    - Dark background with subtle grid lines
+    - Left: Evcarix badge (top-left) + large title text (2-3 lines)
+    - Right: Status badge (top-right) + dark data panel with title + rows + stat cards
+    - Bottom: 'Evcarix - No hype. Just numbers.' footer
+    - Bottom-left of main area: subtle 'data1 - data2 - data3' line
+    """
+    a1 = st["accent1"]
+    a2 = st["accent2"]
+    grid_c = st.get("grid_color", (25, 15, 40))
+    panel_bg = st.get("panel_bg", (10, 5, 20))
+    panel_border = st.get("panel_border", a1)
+    footer_color = st.get("footer_color", a1)
+
+    # ── Base background ──
+    img = Image.new("RGB", (W, H), st["bg"])
+    draw = ImageDraw.Draw(img)
+
+    # ── Grid lines ──
+    grid_spacing = 52
+    for x in range(0, W, grid_spacing):
+        draw.line([(x, 0), (x, H)], fill=grid_c, width=1)
+    for y in range(0, H, grid_spacing):
+        draw.line([(0, y), (W, y)], fill=grid_c, width=1)
+
+    # Subtle radial glow left side
+    img = _radial_glow(img, 180, H // 2, 420, a1, 0.12)
+    draw = ImageDraw.Draw(img)
+
+    # ── Decorative circles (bottom-left background) ──
+    for r, alpha in [(220, 0.06), (160, 0.04), (100, 0.03)]:
+        col = tuple(min(255, int(c * alpha * 8)) for c in a1)
+        draw.ellipse([80 - r, H//2 - r, 80 + r, H//2 + r],
+                     outline=col, width=1)
+
+    # ════════════════════════════════════════════════
+    # TOP BADGES
+    # ════════════════════════════════════════════════
+    # Left: Evcarix badge
+    evcarix_bg = st.get("evcarix_badge_color", (0, 120, 200))
+    ev_lbl = "Evcarix"
+    ev_f = _fnt(26)
+    ev_w = int(draw.textlength(ev_lbl, font=ev_f))
+    draw.rectangle([18, 18, ev_w + 52, 56], fill=evcarix_bg)
+    draw.text((28, 22), ev_lbl, font=ev_f, fill=(255, 255, 255))
+
+    # Right: Status badge
+    status_lbl = st.get("status", "DEEP DIVE")
+    status_bg = st.get("badge_color", (200, 200, 200))
+    status_tc = st.get("badge_text_color", (0, 0, 0))
+    st_f = _fnt(26)
+    st_w = int(draw.textlength(status_lbl, font=st_f))
+    panel_x = W // 2 + 20  # panel starts here (see below)
+    # Place status badge at top-right of panel
+    sb_x = W - st_w - 52
+    draw.rectangle([sb_x, 18, sb_x + st_w + 34, 56], fill=status_bg)
+    draw.text((sb_x + 16, 22), status_lbl, font=st_f, fill=status_tc)
+
+    # ════════════════════════════════════════════════
+    # LEFT SIDE: Title text
+    # ════════════════════════════════════════════════
+    tx = 22
+    zone_w = W // 2 - 20   # slightly wider so words don’t clip
+    title_c = st.get("title_color", (255, 255, 255))
+    keyword_c = st.get("keyword_color", a1)
+
+    # Use _split_title lines directly (already word-boundary aware):
+    # lines[0] = intro line (white, medium)
+    # lines[1] = keyword line (accent color, huge)
+    # lines[2] = subtitle line (pill badge)
+    intro_txt = lines[0] if lines[0] else ""
+    key_txt   = lines[1] if lines[1] else lines[0]
+    sub_txt   = lines[2] if len(lines) > 2 and lines[2] else ""
+
+    f_intro = _auto_font(draw, intro_txt, zone_w, 58) if intro_txt else None
+    f_key   = _auto_font(draw, key_txt, zone_w, 100)
+    f_sub   = _auto_font(draw, sub_txt, zone_w, 46, False) if sub_txt else None
+
+    GAP = 12
+    total_h = 0
+    if f_intro and intro_txt: total_h += _text_h(draw, intro_txt, f_intro) + GAP
+    total_h += _text_h(draw, key_txt, f_key)
+    if f_sub and sub_txt:     total_h += GAP + _text_h(draw, sub_txt, f_sub)
+
+    ty = _block_top(total_h, 70, H - 90)
+
+    if f_intro and intro_txt:
+        draw.text((tx, ty), intro_txt, font=f_intro, fill=title_c)
+        ty += _text_h(draw, intro_txt, f_intro) + GAP
+
+    # Big keyword with subtle shadow
+    for ox, oy in [(-2,0),(2,0),(0,-2),(0,2)]:
+        draw.text((tx+ox, ty+oy), key_txt, font=f_key,
+                  fill=tuple(c//4 for c in keyword_c))
+    draw.text((tx, ty), key_txt, font=f_key, fill=keyword_c)
+    ty += _text_h(draw, key_txt, f_key)
+
+    if f_sub and sub_txt:
+        ty += GAP
+        # Pill badge behind subtitle — white text for contrast
+        sub_w = int(draw.textlength(sub_txt, font=f_sub))
+        sub_h = _text_h(draw, sub_txt, f_sub)
+        draw.rectangle([tx-6, ty-3, tx+sub_w+16, ty+sub_h+5], fill=a1)
+        draw.text((tx+4, ty), sub_txt, font=f_sub, fill=(255, 255, 255))
+
+    # Bottom-left data summary line
+    stats = st.get("stats", [])
+    if stats:
+        summary_parts = [s[1] for s in stats[:3]]  # short labels
+        summary_txt = "  -  ".join(summary_parts).upper()
+        sf = _fnt(18, False)
+        draw.text((tx, H - 82), summary_txt, font=sf, fill=(140, 150, 165))
+
+    # ════════════════════════════════════════════════
+    # RIGHT SIDE: Data Panel
+    # ════════════════════════════════════════════════
+    px = W // 2 + 16
+    py = 70
+    pw = W - px - 18
+    ph = H - py - 80
+
+    # Panel background + border
+    draw.rectangle([px, py, px+pw, py+ph], fill=panel_bg,
+                   outline=panel_border, width=1)
+
+    # Panel header bar
+    panel_title = st.get("badge_label", "EV DATA")
+    pt_words = [intro_txt, key_txt[:15]] if intro_txt else [key_txt[:20]]
+    panel_header = f"{pt_words[0]} — {panel_title}"
+    ph_f = _fnt(17, False)
+    ph_w = int(draw.textlength(panel_header, font=ph_f))
+    draw.rectangle([px, py, px+pw, py+28], fill=tuple(c//5 for c in panel_border))
+    draw.text((px+10, py+6), panel_header.upper(), font=ph_f, fill=panel_border)
+
+    # Panel content rows (from GLOBAL_STATS_POOL sample)
+    row_stats = st.get("stats", random.sample(GLOBAL_STATS_POOL, 3))
+    stat_colors = st.get("stat_colors", [(0,180,220),(255,200,0),(220,40,40),(0,200,100)])
+
+    # Draw 3-4 data rows in the panel
+    row_labels = [
+        ("1000 CYCLE LIFE",  "CLAIMED",  "Lab only, 650 real-world"),
+        ("20-MIN CHARGE",    "CLAIMED",  "Needs 350kW infra (rare)"),
+        ("NO RARE EARTH",    "CLAIMED",  "Still uses cobalt traces"),
+        ("$80/kWh TARGET",  "UNVERIF.", "Current cost: $120/kWh"),
+    ]
+    # Use topic-derived stats if available
+    if row_stats:
+        row_labels = [
+            (row_stats[0][1], row_stats[0][0], "Source: BNEF / IEA"),
+            (row_stats[1][1] if len(row_stats)>1 else "FAST CHARGE",
+             row_stats[1][0] if len(row_stats)>1 else "22 min",
+             "Independent test data"),
+            ("NO RARE EARTH",   "CLAIMED",  "Manufacturer claim"),
+            (row_stats[2][1] if len(row_stats)>2 else "COST TARGET",
+             row_stats[2][0] if len(row_stats)>2 else "$82/kWh",
+             "BNEF 2026 forecast"),
+        ]
+
+    row_f     = _fnt(16, False)
+    badge_f   = _fnt(14)
+    note_f    = _fnt(13, False)
+    row_start = py + 36
+    row_h     = (ph - 36 - 80) // 4  # 4 rows, leave 80px for stat cards
+
+    for i, (label, badge_val, note) in enumerate(row_labels[:4]):
+        ry = row_start + i * row_h
+        # Row separator
+        if i > 0:
+            draw.line([(px+6, ry), (px+pw-6, ry)],
+                      fill=tuple(c//6 for c in panel_border), width=1)
+        # Label
+        draw.text((px+10, ry+6), label.upper(), font=row_f,
+                  fill=(200, 210, 220))
+        # Colored badge
+        col = stat_colors[i % len(stat_colors)]
+        bv_w = int(draw.textlength(badge_val, font=badge_f))
+        bvx = px + pw // 2 - 10
+        draw.rectangle([bvx, ry+5, bvx+bv_w+14, ry+5+22], fill=col)
+        draw.text((bvx+7, ry+7), badge_val, font=badge_f, fill=(0,0,0))
+        # Note
+        draw.text((bvx+bv_w+20, ry+9), note[:25], font=note_f,
+                  fill=(130, 145, 160))
+
+    # ── STAT CARDS (bottom of panel, 4 cards side by side) ──
+    card_y = py + ph - 72
+    draw.line([(px+4, card_y-2), (px+pw-4, card_y-2)],
+              fill=tuple(c//4 for c in panel_border), width=1)
+
+    card_w = pw // 4
+    for i, (val, label, col) in enumerate(row_stats[:4] if len(row_stats)>=4
+                                           else row_stats + [("EVs","MARKET",a2)]):
+        cx_card = px + i * card_w
+        # Card border
+        draw.rectangle([cx_card+2, card_y+2, cx_card+card_w-2, py+ph-3],
+                       fill=tuple(c//7 for c in col), outline=tuple(c//3 for c in col), width=1)
+        # Value (big)
+        vf = _auto_font(draw, str(val), card_w-10, 26)
+        vw = int(draw.textlength(str(val), font=vf))
+        draw.text((cx_card + (card_w-vw)//2, card_y+8), str(val), font=vf, fill=col)
+        # Label (small)
+        lf2 = _fnt(11, False)
+        lw2 = int(draw.textlength(label, font=lf2))
+        draw.text((cx_card + (card_w-lw2)//2, card_y+38), label.upper(),
+                  font=lf2, fill=(160,170,185))
+
+    # Source line
+    src_f = _fnt(11, False)
+    draw.text((px+8, py+ph-14), "Sources: BNEF, CES datasheets, independent tests",
+              font=src_f, fill=(80, 90, 100))
+
+    # ════════════════════════════════════════════════
+    # FOOTER
+    # ════════════════════════════════════════════════
+    foot_y = H - 68
+    draw.rectangle([0, foot_y, W, H], fill=(0,0,0))
+    draw.rectangle([0, foot_y, W, foot_y+2], fill=a1)
+
+    footer_txt = "Evcarix  -  No hype. Just numbers."
+    ff = _fnt(24, False)
+    fw = int(draw.textlength(footer_txt, font=ff))
+    draw.text(((W-fw)//2, foot_y+18), footer_txt, font=ff, fill=footer_color)
+
+    return img
+
+
 # ── Public class ──────────────────────────────────────────────────────────────
 class ThumbnailGenerator:
 
@@ -1603,15 +1913,19 @@ class ThumbnailGenerator:
 
         W, H = 1280, 720
         
-        # 20 PREMIUM stilden rastgele birini seçiyoruz (Tam Çeşitlilik)
-        base_st = random.choice(PREMIUM_PALETTES)
+        # evcarix_pro teması %60 ağırlıkla seçilir (premium grid+data panel)
+        pro_palettes   = [p for p in PREMIUM_PALETTES if p.get("theme") == "evcarix_pro"]
+        other_palettes = [p for p in PREMIUM_PALETTES if p.get("theme") != "evcarix_pro"]
+        pool = pro_palettes * 3 + other_palettes   # 3:2 oran → ~%60 pro
+        base_st = random.choice(pool)
         st = {k: v for k, v in base_st.items()}
         
-        # Sınırsız çeşitlilik için GLOBAL_STATS_POOL'dan 3 istatistik seçiyoruz
-        st["stats"] = random.sample(GLOBAL_STATS_POOL, min(3, len(GLOBAL_STATS_POOL)))
+        # GLOBAL_STATS_POOL'dan 4 istatistik seçiyoruz (evcarix_pro 4 kart gösteriyor)
+        st["stats"] = random.sample(GLOBAL_STATS_POOL, min(4, len(GLOBAL_STATS_POOL)))
 
-        # Sınırsız çeşitlilik için layout'u tamamen rastgele seçelim
+        # Legacy layout seçimi (evcarix_pro palette'ler kendi layoutlarını kullanır)
         layout = random.choice(LAYOUTS)
+
 
         # Arka plan için assets/footage altındaki videolardan rastgele bir kare çıkarma
         video_frame_img = None
@@ -1654,10 +1968,11 @@ class ThumbnailGenerator:
         try:
             # ── YouTube Premium tema-based dispatch ──
             _YT_LAYOUTS = {
-                "shocking": _layout_yt_shocking,
-                "crash":    _layout_yt_crash,
-                "nextgen":  _layout_yt_nextgen,
-                "scam":     _layout_yt_scam,
+                "shocking":     _layout_yt_shocking,
+                "crash":        _layout_yt_crash,
+                "nextgen":      _layout_yt_nextgen,
+                "scam":         _layout_yt_scam,
+                "evcarix_pro":  _layout_yt_evcarix_pro,   # NEW: grid + data panel
             }
 
             theme = st.get("theme", "")
