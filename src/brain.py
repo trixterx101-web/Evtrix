@@ -71,8 +71,53 @@ TOPIC_KEYWORDS = {
     "efficiency":       ["EV Efficiency", "Energy Use", "Real MPGe"],
 }
 
+# ── EV kanalıyla alakasız saçma topic kelimeleri ──────────────────────────
+INVALID_TOPIC_WORDS = {
+    # Saçma/alakasız
+    "rubber band", "rubber bands", "cooking", "recipe", "food", "fashion",
+    "makeup", "gaming", "fortnite", "minecraft", "tiktok", "dancing",
+    "prank", "challenge", "viral", "meme", "funny", "comedy",
+    # Gerçek EV kanalıyla alakasız
+    "yoga", "fitness", "workout", "diet", "weight loss", "crypto",
+    "bitcoin", "stock market", "forex", "nft", "metaverse",
+    "pet", "dog", "cat", "animal", "flower", "garden",
+    "travel", "vacation", "hotel", "restaurant",
+    # Genel saçmalık işaretleri
+    "testing cars using rubber", "rubber band car",
+}
+
+
+def _sanitize_title(title: str) -> str:
+    """
+    Başlıktan emoji ve istenmeyen karakterleri temizler.
+    Max 70 karakter olacak şekilde kırpar (YouTube best practice).
+    """
+    import unicodedata
+    cleaned = ""
+    for ch in title:
+        cat = unicodedata.category(ch)
+        cp  = ord(ch)
+        if cat in ('So', 'Sm', 'Sk', 'Sc', 'Cs', 'Co') or cp > 0xFFFF:
+            continue
+        cleaned += ch
+    cleaned = re.sub(r'  +', ' ', cleaned).strip()
+    if len(cleaned) > 70:
+        cleaned = cleaned[:67].rsplit(' ', 1)[0].rstrip('.,;:') + '...'
+    return cleaned
+
+
+def _is_topic_valid(topic: str) -> bool:
+    """Topic'in EV kanalıyla alakalı olup olmadığını kontrol et."""
+    topic_lower = topic.lower()
+    for bad_word in INVALID_TOPIC_WORDS:
+        if bad_word in topic_lower:
+            print(f"[Brain] ❌ Geçersiz topic ('{bad_word}'): {topic[:60]}")
+            return False
+    return True
+
 
 def _is_english_title(title: str) -> bool:
+
     """
     Başlığın tamamen İngilizce olup olmadığını kontrol et.
     Hintce, Arapça, Çince, Japonce, Rusça, Almanca özel karakterler
@@ -154,9 +199,11 @@ Generate ONE viral YouTube title following these rules:
 1. Maximum 70 characters
 2. Creates curiosity or shock
 3. Contains a specific number, fact, or question when possible
-4. No clickbait lies — must be relevant to topic
+4. No clickbait lies — must be relevant to EV/battery/AI topic
 5. English only. US/Europe/Global perspective.
-6. Use one of these proven formulas:
+6. NO emojis. NO special symbols. Plain text only.
+7. NO hashtags. NO brand names as first word.
+8. Use one of these proven formulas:
    - "Nobody Is Talking About [X] — But They Should Be"
    - "I Tested [X] for 30 Days — The Results Are Shocking"
    - "Why [X] Will Change Everything in 2026"
@@ -165,7 +212,7 @@ Generate ONE viral YouTube title following these rules:
    - "Warning: What [X] Really Costs in 2026"
    - "[X] vs Reality: We Ran the Numbers"
 
-Return ONLY the title. No quotes. No explanation."""
+Return ONLY the title. No quotes. No explanation. No emojis."""
 
         res = call_gemini(prompt) or call_groq(prompt)
         if not res:
@@ -220,6 +267,22 @@ def _validate_title(title: str) -> bool:
     if not _is_english_title(title):
         print(f"[Brain] ❌ Başlık non-English karakter içeriyor: {title[:60]}")
         return False
+
+    # Saçma/alakasız topic kontrolü
+    if not _is_topic_valid(title):
+        return False
+
+    # Emoji içeriyor mu?
+    import unicodedata
+    has_emoji = any(
+        unicodedata.category(ch) in ('So', 'Sm', 'Sk', 'Sc', 'Cs', 'Co')
+        or ord(ch) > 0xFFFF
+        for ch in title
+    )
+    if has_emoji:
+        print(f"[Brain] ⚠️ Başlıkta emoji var, temizlenecek: {title[:60]}")
+        # Emoji'li başlık direkt reddedilmez, sanitize edilir
+        # (bunu validate False yapmak yerine sanitize ile çözeceğiz)
 
     # Zayıf başlık kalıpları
     weak_patterns = [
@@ -435,11 +498,17 @@ class EvcarixBrain:
 
         content['title'] = improved_title
 
-        # ── Son İngilizce Zorunlu Kontrol ──
+        # ── Son Zorunlu Kontroller ───────────────────────────────────
+        # 1) Saçma topic kontrolü
+        if not _is_topic_valid(content['title']):
+            print(f"[Brain] ⚠️ Geçersiz topic başlığı fallback'e geçiliyor")
+            content['title'] = _generate_fallback_title(topic)
+        # 2) İngilizce zorunlu kontrolü
         if not _is_english_title(content['title']):
-            print(f"[Brain] ⚠️ Final başlık non-English! Zorla İngilizce’ye çevriliyor...")
+            print(f"[Brain] ⚠️ Final başlık non-English, çevriliyor")
             content['title'] = _force_english_title(topic, content['title'])
-
+        # 3) Emoji temizle + 70 char sınırı
+        content['title'] = _sanitize_title(content['title'])
         print(f"[Brain] ✅ Final başlık: {content['title']}")
 
 
