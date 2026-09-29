@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import random
 import datetime
@@ -71,12 +72,77 @@ TOPIC_KEYWORDS = {
 }
 
 
+def _is_english_title(title: str) -> bool:
+    """
+    Başlığın tamamen İngilizce olup olmadığını kontrol et.
+    Hintce, Arapça, Çince, Japonce, Rusça, Almanca özel karakterler
+    veya genellikle non-ASCII karakterler varsa False döner.
+    """
+    if not title:
+        return False
+    # Non-ASCII karakter içeriyor mu? (Hintçe, Arapça, Çince, vs.)
+    try:
+        title.encode('ascii')
+    except UnicodeEncodeError:
+        return False
+    if re.search(r'[^\x00-\x7F]', title):
+        return False
+
+    # ASCII ama yabancı dil kelimeleri (Almanca, Fransızca, İspanyolca vs.)
+    _NON_EN_WORDS = {
+        # Almanca
+        "alles", "was", "musst", "wissen", "uber", "ueber", "dass", "beim",
+        "zum", "zur", "einem", "einer", "eines", "sind", "werden", "durch",
+        "durch", "nicht", "aber", "auch", "mehr", "noch", "sehr", "oder",
+        # Fransızca
+        "tout", "dans", "avec", "pour", "sur", "une", "des", "les", "voici",
+        "vous", "nous", "ils", "elles", "notre", "leur",
+        # Hintçe (Latin harflerle yazılan)
+        "sahi", "apki", "kaise", "sabse", "chunen", "karein",
+        # Türkçe (pipeline Türkçe'ye dönmemeli)
+        "hakkında", "neden", "nasıl", "neden", "karşılaştırma",
+    }
+    title_words = set(title.lower().split())
+    non_en_found = title_words & _NON_EN_WORDS
+    if non_en_found:
+        print(f"[Brain] ❌ Non-English kelime tespit edildi: {non_en_found}")
+        return False
+
+    return True
+
+
+def _force_english_title(topic: str, bad_title: str) -> str:
+    """Non-English başlığı İngilizce’ye dönüştür veya fallback üret."""
+    # Önce Gemini/Groq ile İngilizce başlık iste
+    try:
+        from src.writer import call_gemini, call_groq
+        prompt = (
+            f'Generate ONE English-only YouTube title for this EV topic: "{topic}". '
+            f'Rules: max 70 chars, English only, no special characters, no hashtags. '
+            f'Return ONLY the title.'
+        )
+        res = call_gemini(prompt) or call_groq(prompt)
+        if res:
+            candidate = res.strip().strip('"').strip("'")
+            if _is_english_title(candidate) and 20 <= len(candidate) <= 100:
+                print(f"[Brain] 🇧 Non-English başlık İngilizce’ye çevrildi: {candidate}")
+                return candidate
+    except Exception:
+        pass
+    # Fallback: formul tabanlı başlık
+    fallback = _generate_fallback_title(topic)
+    print(f"[Brain] 🇧 Fallback İngilizce başlık: {fallback}")
+    return fallback
+
+
+
 def _improve_title_with_gemini(topic: str, raw_title: str) -> str:
     """
     Gemini ile başlığı profesyonel formüle göre iyileştir.
     raw_title zayıfsa Gemini yeniden üretir.
     """
     try:
+
         from src.writer import call_gemini, call_groq
 
         prompt = f"""You are a YouTube title expert for the channel "Evcarix" — the #1 EV data channel. Topics: EVs, AI, Battery Tech, Robotics, Future Technology.
@@ -112,6 +178,10 @@ Return ONLY the title. No quotes. No explanation."""
             return raw_title
         if new_title.lower() == raw_title.lower():
             return raw_title
+        # İngilizce kontrolü — non-English gelirse raw_title'a dön
+        if not _is_english_title(new_title):
+            print(f"[Brain] ⚠️ Gemini non-English başlık ürett i, reddedildi: {new_title}")
+            return raw_title
 
         print(f"[Brain] 📝 Başlık iyileştirildi: {new_title}")
         return new_title
@@ -144,6 +214,11 @@ def _validate_title(title: str) -> bool:
     if len(title) < 15:
         return False
     if len(title) > 100:
+        return False
+
+    # İngilizce olmayan karakter kontrolü (Hintce, Almanca bozuk ümlauts vs.)
+    if not _is_english_title(title):
+        print(f"[Brain] ❌ Başlık non-English karakter içeriyor: {title[:60]}")
         return False
 
     # Zayıf başlık kalıpları
@@ -359,7 +434,14 @@ class EvcarixBrain:
             improved_title = _improve_title_with_gemini(topic, raw_title)
 
         content['title'] = improved_title
-        print(f"[Brain] ✅ Final başlık: {improved_title}")
+
+        # ── Son İngilizce Zorunlu Kontrol ──
+        if not _is_english_title(content['title']):
+            print(f"[Brain] ⚠️ Final başlık non-English! Zorla İngilizce’ye çevriliyor...")
+            content['title'] = _force_english_title(topic, content['title'])
+
+        print(f"[Brain] ✅ Final başlık: {content['title']}")
+
 
         tags = content.get('tags', [])
         if len(tags) > 30:
