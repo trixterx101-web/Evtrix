@@ -1,0 +1,38 @@
+{
+  "channel": {
+    "name": "Evcarix",
+    "old_name": "EVTRIX",
+    "slogan": "No hype. Just numbers.",
+    "language": "English only",
+    "playlist": "EV Data Reports"
+  },
+  "title_rules": {
+    "max_chars": 100,
+    "language": "English only",
+    "forbidden_words": [
+      "health costs", "GBM", "neural network", "survival predict",
+      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+      "An Accurate and Interpretable", "Hyper Graph",
+      "&amp;"
+    ],
+    "must_contain_one_of": [
+      "EV", "battery", "electric", "vehicle", "charging",
+      "range", "hybrid", "Tesla", "Nissan", "V2G", "V2H",
+      "FSD", "solid state", "depreciation", "lease", "buy"
+    ]
+  },
+  "tags_rules": {
+    "max_chars": 500,
+    "forbidden_if_video_over_60s": ["Shorts", "EVShorts", "#Shorts", "#EVShorts"],
+    "universal_tags": "electric vehicle, EV, battery technology, EV range, electric car, Evcarix, EV data, EV future, fast charging, EV charging, ev range loss, EV technology, clean energy, sustainable energy, electric vehicle data, battery degradation, EV market, lfp battery, solid state battery, electric car range, EV industry, ev battery, EV data analysis, electric vehicles 2026, EV vs gas, battery cost"
+  },
+  "thumbnail_rules": {
+    "channel_badge": "Evcarix",
+    "slogan": "No hype. Just numbers.",
+    "size": "1280x720",
+    "format": "JPG",
+    "quality": 95,
+    "language": "English only",
+    "forbidden": ["EVTRIX", "Broken characters", "Non-English text"]
+  }
+}

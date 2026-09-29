@@ -63,8 +63,20 @@ def _available_keys(keys: list[str]) -> list[str]:
 # PROVIDERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-GROQ_MODELS = ["llama-3.1-8b-instant", "llama3-8b-8192", "gemma2-9b-it", "llama-3.1-70b-versatile"]
-GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"]
+# Güncel çalışan modeller (2026-09)
+GROQ_MODELS = [
+    "llama-3.3-70b-versatile",       # Groq'un en güncel güçlü modeli
+    "llama-3.1-70b-specdec",          # Hızlı büyük model
+    "llama3-groq-8b-8192-tool-use-preview",  # Groq 8B araç destekli
+    "mixtral-8x7b-32768",             # Mixtral stabil
+    "llama-3.2-11b-text-preview",     # Yeni Llama 3.2
+]
+GEMINI_MODELS = [
+    "gemini-2.0-flash",               # Stabil ana model
+    "gemini-2.0-flash-exp",           # Deneysel hızlı
+    "gemini-2.5-flash-lite",          # Yeni lite model
+    "gemini-2.5-flash-preview-05-20", # Preview sürüm
+]
 
 def call_groq(prompt: str, model: Optional[str] = None, max_tokens: int = 900) -> Optional[str]:
     avail = _available_keys(_GROQ_KEYS)
