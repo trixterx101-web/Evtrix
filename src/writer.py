@@ -21,8 +21,78 @@ print("=== WRITER LOADED — BRAND: Evcarix v10.0 ===", flush=True)
 logger = logging.getLogger("Writer")
 
 # ─────────────────────────────────────────────────────────────────────────────
+# BRAND SANITIZATION — Competitor names & wrong channel refs temizle
+# ─────────────────────────────────────────────────────────────────────────────
+
+# AI'ın script'e enjekte ettiği bilinen yanlış isimler / kanallar
+_BRAND_REPLACEMENTS = [
+    # Rakip kanal isimleri
+    (r"\bColdface\b",        "Evcarix", re.IGNORECASE),
+    (r"\bE\s*Furicks?\b",    "Evcarix", re.IGNORECASE),
+    (r"\bEFuricks?\b",       "Evcarix", re.IGNORECASE),
+    (r"\bEvtrix\b",          "Evcarix", re.IGNORECASE),
+    (r"\bEV\s*Trix\b",       "Evcarix", re.IGNORECASE),
+    # Yanlış subscribe satırları
+    (r"Subscribe\s+to\s+(?!Evcarix)[A-Z][A-Za-z\s]{1,30}—\s*No hype\.",
+     "Subscribe to Evcarix — No hype. Just numbers.", 0),
+    (r"Subscribe\s+to\s+(?!Evcarix)[A-Z][A-Za-z\s]{1,30}\s*[—\-]\s*No hype\.",
+     "Subscribe to Evcarix — No hype. Just numbers.", 0),
+]
+
+def _sanitize_script(text: str) -> str:
+    """Script metninden rakip kanal adlarını ve yanlış brand ref'lerini temizle."""
+    if not text:
+        return text
+    for pattern, replacement, flags in _BRAND_REPLACEMENTS:
+        text = re.sub(pattern, replacement, text, flags=flags)
+    # Son satırda mutlaka doğru CTA olsun
+    if "subscribe" in text.lower() and "evcarix" not in text.lower():
+        text = text.rstrip() + "\n\nSubscribe to Evcarix — No hype. Just numbers."
+    return text
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _extract_analyze_items_from_script(script: str, topic: str, is_long: bool = True) -> list:
+    """
+    Script metninden 'WE ANALYZE' kısmı için gerçek içerik başlıklarını çıkar.
+    Script'ten elde edilemezsek topic'e dayalı güçlü varsayılanlar kullan.
+    """
+    items = []
+    if script:
+        sentences = re.split(r'(?<=[.!?])\s+', script)
+        for sent in sentences:
+            # Sayı veya % içeren cümleler gerçek data noktalarıdır
+            if re.search(r'\d+[\.\d]*\s*(%|percent|kWh|mile|km|\$|dollar|watt|volt)', sent, re.I):
+                # Cümleyi kısa bir başlığa dönüştür (max 80 char)
+                clean = sent.strip().rstrip('.')
+                if 20 < len(clean) < 90:
+                    items.append(clean)
+            if len(items) >= 5:
+                break
+
+    # Yeterli item yoksa topic tabanlı varsayılanlar kullan
+    defaults_long = [
+        f"Real-world battery degradation & performance data for {topic}",
+        "Technical specifications compared across major brands (Tesla, BYD, Hyundai, VW)",
+        "Market trends in the US, EU, and Chinese EV markets (2024-2026 data)",
+        "Long-term thermal management physics and efficiency metrics",
+        "Financial parity and 5-year total cost of ownership breakdowns",
+    ]
+    defaults_short = [
+        f"Key stat behind {topic} that changes everything",
+        "Real-world efficiency benchmarks vs manufacturer claims",
+        "Global EV market comparison: USA, Europe & China",
+        "Final cost & range verdict for 2026 buyers",
+    ]
+    defaults = defaults_long if is_long else defaults_short
+    for d in defaults:
+        if len(items) >= (5 if is_long else 4):
+            break
+        items.append(d)
+    return items
+
 
 ENABLE_GEMINI = True
 PRIMARY_LLM = "groq"
@@ -274,90 +344,103 @@ def clean_and_validate_title(title: str, topic: str = "") -> str:
 def format_description_template(
     hook: str,
     summary: str,
-    analyze_items: list[str],
-    timestamps: list[tuple[str, str]],
-    topic_hashtags: list[str],
+    analyze_items: list,
+    timestamps: list,
+    topic_hashtags: list,
     is_long: bool = False
 ) -> str:
-    """KURAL 1 Description Template Generator:
-    1. Hook sentence starting with 🚀
-    2. 2-3 sentence summary paragraph
-    3. 📊 WE ANALYZE: section (at least 4 items)
-    4. ⏱️ TIMESTAMPS: section (at least 4 timestamps)
-    5. 🔔 Subscribe to Evcarix — No hype. Just numbers.
-    6. Hashtag block (No Shorts/EVShorts if long video)
     """
-    # 1. Hook (🚀)
+    YouTube algoritması için optimize edilmiş açıklama şablonu.
+    İlk 3 satır (Show more öncesi) en kritik bölüm — CTR ve arama sıralamasını etkiler.
+    """
     hook_clean = hook.strip()
-    if not hook_clean.startswith("🚀"):
-        hook_clean = re.sub(r'^[^\w\s]+', '', hook_clean).strip()
-        hook_clean = f"🚀 {hook_clean}"
+    # Emojileri temizle — düz metin ilk satır daha iyi taranır
+    hook_clean = re.sub(r'^[🚀⚡🔥💡📊⏱️🔔✅❌⚠️]+\s*', '', hook_clean).strip()
 
-    # 2. Summary
     summary_clean = summary.strip()
 
-    # 3. WE ANALYZE (min 4 bullet points)
-    items = [p.strip() for p in analyze_items if p and len(p.strip()) > 3]
-    if len(items) < 4:
-        default_items = [
-            "Real-world battery degradation & energy efficiency metrics",
-            "Manufacturer claims vs independent test benchmarks",
-            "Winter cold weather range impact and thermal performance",
-            "Total cost of ownership comparison (USA, Europe & Asia)"
-        ]
-        for default_item in default_items:
-            if default_item not in items and len(items) < 4:
-                items.append(default_item)
+    # ── İLK 3 SATIR (Show more öncesi — EN KRİTİK BÖLÜM) ─────────────────
+    # YouTube bu kısmı arama snippet'i olarak gösterir ve CTR'yi doğrudan etkiler
+    first_line   = hook_clean  # En çarpıcı cümle — izleyiciyi kancalar
+    second_line  = summary_clean[:200] if len(summary_clean) > 200 else summary_clean
+    third_line   = "No opinion. No brand hype. Just verified data from official industry reports."
 
-    analyze_block = "📊 WE ANALYZE:\n" + "\n".join(f"- {item}" for item in items[:6])
-
-    # 4. TIMESTAMPS (min 4 timestamps)
+    # ── TIMESTAMPS (YouTube chapters için kritik — arama sıralamasını artırır) ──
     if not timestamps or len(timestamps) < 4:
         if is_long:
             timestamps = [
-                ("00:00", "Shocking EV Data Point"),
-                ("01:00", "Deep Data Analysis & Physics"),
-                ("02:20", "Technical Specifications & Benchmarks"),
-                ("03:40", "Industry Trends & Cost Comparison"),
-                ("05:00", "Final Verdict & Buyer Guidance")
+                ("00:00", "Key Data Hook"),
+                ("01:00", "Deep Analysis & Physics"),
+                ("02:20", "Technical Specifications"),
+                ("03:40", "Industry Trends & Costs"),
+                ("05:00", "Final Verdict"),
             ]
         else:
             timestamps = [
-                ("00:00", "Shocking Data Hook"),
-                ("00:15", "Real World Telemetry"),
+                ("00:00", "Shocking Stat"),
+                ("00:15", "Real World Data"),
                 ("00:30", "Technical Breakdown"),
-                ("00:45", "Final Verdict & Conclusion")
+                ("00:45", "Final Verdict"),
             ]
+    timestamps_block = "\n".join(f"{ts[0]} {ts[1]}" for ts in timestamps[:6])
 
-    timestamps_block = "⏱️ TIMESTAMPS:\n" + "\n".join(f"{ts[0]} {ts[1]}" for ts in timestamps[:6])
+    # ── WHAT YOU'LL LEARN (SEO için — arama robotları bu bölümü tarar) ────
+    items = [p.strip() for p in analyze_items if p and len(p.strip()) > 3]
+    if len(items) < 4:
+        defaults = [
+            "Real-world battery degradation & energy efficiency metrics",
+            "Manufacturer claims vs independent test benchmarks",
+            "Winter cold weather range impact and thermal performance",
+            "Total cost of ownership comparison (USA, Europe & Asia)",
+        ]
+        for d in defaults:
+            if len(items) >= 4:
+                break
+            if d not in items:
+                items.append(d)
 
-    # 5. Subscribe line
-    subscribe_line = "🔔 Subscribe to Evcarix — No hype. Just numbers."
+    learn_block = "WHAT YOU'LL LEARN:\n" + "\n".join(f"• {item}" for item in items[:5])
 
-    # 6. Hashtags
+    # ── SUBSCRIBE + ENGAGEMENT CTA ─────────────────────────────────────────
+    # Comment CTA izleme süresini artırır (algoritma sinyali)
+    cta_block = (
+        "Subscribe to Evcarix — No hype. Just numbers.\n"
+        "Drop your question in the comments. We read every one."
+    )
+
+    # ── HASHTAGS (max 3 long, max 5 short — fazlası YouTube'u kızdırır) ───
     base_hashtags = ["#Evcarix", "#ElectricVehicles", "#EVData"]
     if topic_hashtags:
         for tag in topic_hashtags:
             clean_t = tag.strip()
             if not clean_t.startswith("#"):
                 clean_t = "#" + re.sub(r'[^a-zA-Z0-9]', '', clean_t)
-            
-            # KURAL 1 & KURAL 3: Long videolarda Shorts/EVShorts YASAK!
             if is_long and clean_t.lower() in ["#shorts", "#evshorts", "#shortsvideo"]:
                 continue
-            
             if clean_t and clean_t.lower() not in [b.lower() for b in base_hashtags]:
                 base_hashtags.append(clean_t)
 
     if not is_long:
-        if "#Shorts" not in base_hashtags:
-            base_hashtags.append("#Shorts")
-        if "#EVShorts" not in base_hashtags:
-            base_hashtags.append("#EVShorts")
+        for must in ["#Shorts", "#EVShorts"]:
+            if must not in base_hashtags:
+                base_hashtags.append(must)
 
-    hashtag_block = " ".join(base_hashtags[:8])
+    max_tags = 3 if is_long else 5
+    hashtag_block = " ".join(base_hashtags[:max_tags])
 
-    return f"{hook_clean}\n\n{summary_clean}\n\n{analyze_block}\n\n{timestamps_block}\n\n{subscribe_line}\n\n{hashtag_block}"
+    # ── FINAL AÇIKLAMA YAPISI ──────────────────────────────────────────────
+    return (
+        f"{first_line}\n\n"
+        f"{second_line}\n\n"
+        f"{third_line}\n\n"
+        f"────────────────────────────\n"
+        f"{timestamps_block}\n"
+        f"────────────────────────────\n\n"
+        f"{learn_block}\n\n"
+        f"{cta_block}\n\n"
+        f"{hashtag_block}"
+    )
+
 
 
 def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
@@ -367,20 +450,26 @@ def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
         "Identity: Evcarix — The #1 Electric Vehicle Data Channel. Motto: 'No hype. Just numbers.'"
     )
 
+    # Topic'ten ilk 3 anahtar kelimeyi al (başlık kontrolü için)
+    topic_keywords = " ".join(topic.split()[:4])
+
     if is_long:
         prompt = (
             f"Generate HIGH-CTR VIRAL YouTube SEO metadata for a 5-10 minute deep-dive EV video about: '{topic}'.\n"
             f"{brand_style}\n"
             "CRITICAL VIRAL SEO RULES:\n"
-            "1. TITLES: Generate 2 ULTRA HIGH-CTR TITLES (Version A: Shocking Fact/Stat with specific numbers, Version B: Curiosity Question).\n"
-            "2. TITLE FORMAT: Max 65 chars. No ALL CAPS. Include a number (%, $, kWh, miles, 2026).\n"
+            f"1. TITLES: Generate 2 ULTRA HIGH-CTR TITLES. BOTH titles MUST directly reference this specific topic: '{topic_keywords}'. "
+            "Do NOT generate generic EV titles. Be specific to the topic.\n"
+            "   Version A: Shocking Fact/Stat with specific numbers about the topic.\n"
+            "   Version B: Curiosity/Question about the topic.\n"
+            "2. TITLE FORMAT: Max 65 chars. No ALL CAPS. Include a number (%, $, kWh, miles, 2026). NO emojis.\n"
             "3. TAGS: 20 high-traffic, low-competition tags combining broad EV terms + specific topic keywords. NO Shorts/EVShorts tags.\n"
-            "4. HOOKS: 2 irresistible opening hooks (Hook A and Hook B) starting with a shocking fact.\n"
+            "4. HOOKS: 2 irresistible opening hooks (Hook A and Hook B) starting with a shocking fact about the topic.\n"
             "5. SEO DESCRIPTION: A search-engine optimized 3-sentence summary packed with high-volume search queries.\n"
             "Return ONLY JSON:\n"
             "{\n"
-            "  \"title_a\": \"[SHOCKING FACT TITLE]\",\n"
-            "  \"title_b\": \"[CURIOSITY EXPOSED TITLE]\",\n"
+            "  \"title_a\": \"[SHOCKING FACT TITLE — must contain topic keywords]\",\n"
+            "  \"title_b\": \"[CURIOSITY EXPOSED TITLE — must contain topic keywords]\",\n"
             "  \"tags\": [\"tag1\", \"tag2\", ...],\n"
             "  \"hook_a\": \"[RETENTION HOOK VERSION A]\",\n"
             "  \"hook_b\": \"[RETENTION HOOK VERSION B]\",\n"
@@ -393,15 +482,18 @@ def generate_seo_metadata(topic: str, is_long: bool = False) -> dict:
             f"Generate VIRAL HIGH-ENGAGEMENT YouTube Shorts SEO metadata for: '{topic}'.\n"
             f"{brand_style}\n"
             "CRITICAL VIRAL SEO RULES:\n"
-            "1. TITLES: Generate 2 ULTRA HIGH-CTR SHORT TITLES (Version A: Number-heavy, Version B: Curiosity question).\n"
-            "2. TITLE FORMAT: Max 50 chars. Highly punchy & viral. Use numbers (%, $, Miles, kWh).\n"
+            f"1. TITLES: Generate 2 ULTRA HIGH-CTR SHORT TITLES. BOTH titles MUST reference this exact topic: '{topic_keywords}'. "
+            "Do NOT use generic EV titles. Be specific.\n"
+            "   Version A: Number-heavy shocking stat about the topic.\n"
+            "   Version B: Curiosity question about the topic.\n"
+            "2. TITLE FORMAT: Max 50 chars. Highly punchy & viral. Use numbers (%, $, Miles, kWh). NO emojis.\n"
             "3. TAGS: 15 high-velocity viral tags. MUST include: 'Shorts', 'EVShorts', 'ElectricVehicles', 'EVData'.\n"
-            "4. HOOKS: 2 punchy, attention-grabbing opening lines starting with a shocking statistic.\n"
+            "4. HOOKS: 2 punchy, attention-grabbing opening lines starting with a shocking statistic about the topic.\n"
             "5. SEO SUMMARY: A short 2-sentence punchy summary filled with trending search terms.\n"
             "Return ONLY JSON:\n"
             "{\n"
-            "  \"title_a\": \"[VIRAL NUMBER TITLE]\",\n"
-            "  \"title_b\": \"[VIRAL QUESTION TITLE]\",\n"
+            "  \"title_a\": \"[VIRAL NUMBER TITLE — must contain topic keywords]\",\n"
+            "  \"title_b\": \"[VIRAL QUESTION TITLE — must contain topic keywords]\",\n"
             "  \"tags\": [\"tag1\", \"tag2\", ...],\n"
             "  \"hook_a\": \"[VIRAL HOOK A]\",\n"
             "  \"hook_b\": \"[VIRAL HOOK B]\",\n"
@@ -450,10 +542,12 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
                 "HOOK + INTRO (first 60 seconds)",
                 f"Write ONLY the opening 45-second section of an EV deep-dive video about: '{topic}'.\n"
                 f"Start IMMEDIATELY with: '{hook}' — then ONE shocking statistic with real numbers.\n"
-                f"Then briefly preview what the viewer will learn. NO greetings. NO 'In this video'. US ENGLISH ONLY.\n"
+                f"RETENTION RULE: End this section by opening a 'curiosity loop' — tease one surprising fact "
+                f"the viewer will learn later. Example: 'But the number that changes everything comes at minute 3.'\n"
+                f"NO greetings. NO 'In this video'. US ENGLISH ONLY.\n"
                 f"Output ~95-110 words of spoken script text ONLY. No headings.",
                 (
-                    f"Here is a number that will change how you see {topic}: global electric vehicle adoption reached an unprecedented inflection point this year, with fleet performance and economic metrics surprising even seasoned industry analysts across North America, Europe, and Asia. Today, we break down the empirical data, battery physics, thermal management advancements, and real-world cost of ownership statistics surrounding {topic}. As legacy automakers overhaul production lines and next-generation battery chemistry rolls off assembly lines, understanding the raw numbers behind this transition is crucial for buyers, investors, and automotive enthusiasts alike. No opinion, no brand hype — just verified data from official industry reports."
+                    f"Here is a number that will change how you see {topic}: global electric vehicle adoption reached an unprecedented inflection point this year, with fleet performance and economic metrics surprising even seasoned industry analysts across North America, Europe, and Asia. Today, we break down the empirical data, battery physics, thermal management advancements, and real-world cost of ownership statistics surrounding {topic}. But the single most surprising data point — the one that rewrites every assumption — comes in just a few minutes. Stay with us."
                 )
             ),
             (
@@ -461,10 +555,12 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
                 f"Continue an EV deep-dive video script about: '{topic}'.\n"
                 f"Write ONLY the DATA ANALYSIS section (roughly 90 seconds of spoken content).\n"
                 f"Include: 3 concrete data points with real numbers (%, $, kWh, km), USA/Europe/China examples.\n"
-                f"Every sentence must contain at least one specific number or stat. US ENGLISH ONLY.\n"
+                f"Every sentence must contain at least one specific number or stat.\n"
+                f"RETENTION RULE: End with a SHORT curiosity bridge: hint that the next data set is even more "
+                f"surprising. Example: 'But here is where the real story starts.' US ENGLISH ONLY.\n"
                 f"Output ~190-210 words of spoken script text ONLY. No headings.",
                 (
-                    f"Let's examine the hard data driving {topic}. According to BloombergNEF and International Energy Agency reports, global battery cell manufacturing costs dropped 18 percent over the past 24 months, reaching approximately 89 dollars per kilowatt-hour at the pack level. In the United States, high-speed DC fast-charging infrastructure expanded by 34 percent, reducing the average highway distance between charging stations to under 25 miles on major freight corridors. In Europe, real-world energy efficiency benchmarks show modern EV powertrains averaging 4.2 miles per kilowatt-hour in mixed suburban driving. Furthermore, the rapid transition from 400-volt to 800-volt silicon carbide inverter architectures has cut 10-to-80 percent charging times down to just 16 minutes on compatible chargers. Manufacturing telemetry reveals that assembly automation has reduced motor manufacturing labor hours by 45 percent, lowering overall vehicle production costs significantly. Simultaneously, aerodynamic drag coefficients have reached historical lows of 0.20 Cd, increasing high-speed highway range efficiency by up to 15 percent compared to previous generation vehicles. These figures demonstrate that hardware and manufacturing efficiency are compounding rapidly across every vehicle class."
+                    f"Let's examine the hard data driving {topic}. According to BloombergNEF and International Energy Agency reports, global battery cell manufacturing costs dropped 18 percent over the past 24 months, reaching approximately 89 dollars per kilowatt-hour at the pack level. In the United States, high-speed DC fast-charging infrastructure expanded by 34 percent, reducing the average highway distance between charging stations to under 25 miles on major freight corridors. In Europe, real-world energy efficiency benchmarks show modern EV powertrains averaging 4.2 miles per kilowatt-hour in mixed suburban driving. Furthermore, the rapid transition from 400-volt to 800-volt silicon carbide inverter architectures has cut 10-to-80 percent charging times down to just 16 minutes on compatible chargers. But here is where the real story starts."
                 )
             ),
             (
@@ -509,12 +605,12 @@ def generate_script(topic: str, duration_s: int = 52, is_long: bool = False, **k
             if not part or len(part.split()) < 25:
                 if ENABLE_GEMINI:
                     part = call_gemini(section_prompt)
-            
+
             if part and len(part.split()) >= 25:
-                parts.append(part.strip())
+                parts.append(_sanitize_script(part.strip()))
             else:
                 print(f"[Writer] ⚠️ Bölüm için AI yanıt veremedi ({section_name}), zengin fallback kullanılıyor.", flush=True)
-                parts.append(section_fb.strip())
+                parts.append(_sanitize_script(section_fb.strip()))
 
         script_text = "\n\n".join(parts)
         word_count = len(script_text.split())
@@ -550,6 +646,8 @@ class CreativeWriter:
         meta = generate_seo_metadata(topic, is_long=False)
         script_data = generate_script(topic, duration_s=52, is_long=False)
 
+        script_text = script_data.get("script", "")
+
         final_tags = self._clean_tags(meta.get("tags", ["ev", "electric vehicle", "Evcarix"]), is_long=False)
 
         valid_titles = [t for t in [meta.get('title_a'), meta.get('title_b'), meta.get('title')] if t]
@@ -559,15 +657,11 @@ class CreativeWriter:
         seo_desc = meta.get('seo_description', f'Exploring the latest empirical data and trends behind {topic}.')
         hook_a   = meta.get('hook_a', f'The real data behind {topic} changes everything.')
 
-        analyze_items = [
-            f"Key statistics and real-world battery performance for {topic}",
-            f"Comparative analysis across USA, Europe, and China EV markets",
-            f"Cost of ownership and efficiency impact for buyers in 2026",
-            f"Empirical battery degradation and thermal management telemetry"
-        ]
+        # ── Script'ten analiz başlıkları çıkar (tutarlılık için) ──────────
+        analyze_items = _extract_analyze_items_from_script(script_text, topic, is_long=False)
 
         timestamps = [
-            ("00:00", f"Shocking Stat on {topic.title()}"),
+            ("00:00", f"Shocking Stat on {topic.title()[:35]}"),
             ("00:15", "Real World Efficiency Breakdown"),
             ("00:30", "Global Market Comparison"),
             ("00:45", "Final Verdict")
@@ -584,19 +678,26 @@ class CreativeWriter:
             is_long=False
         )
 
+        # ── Brand sanitizasyonu ───────────────────────────────────────────
+        script_text = _sanitize_script(script_text)
+        desc        = _sanitize_script(desc)
+
         return {
             "title": chosen_title,
-            "script": script_data["script"],
-            "voice": script_data["voice"],
+            "script": script_text,
+            "voice": script_data.get("voice", "female"),
             "tags": final_tags,
             "description": desc,
             "category": "short",
             "category_id": "28"
         }
 
+
     def generate_long_content(self, topic: str, duration_s: int = 540):
         meta = generate_seo_metadata(topic, is_long=True)
         script_data = generate_script(topic, duration_s=duration_s, is_long=True)
+
+        script_text = script_data.get("script", "")
 
         final_tags = self._clean_tags(meta.get("tags", []), is_long=True)
 
@@ -607,16 +708,11 @@ class CreativeWriter:
         seo_desc = meta.get('seo_description', f'A deep-dive data analysis of {topic} by Evcarix.')
         hook_a   = meta.get('hook_a', f'Real data behind {topic} exposes the truth about modern EVs.')
 
-        analyze_items = [
-            f"Industry-leading EV telemetry & real-world performance analysis on {topic}",
-            f"Technical specifications compared across major brands (Tesla, BYD, Hyundai, VW)",
-            f"Market trends in the US, EU, and Chinese EV markets (2024-2026 data)",
-            f"Long-term battery degradation physics and thermal efficiency metrics",
-            f"Financial parity and 5-year total cost of ownership breakdowns"
-        ]
+        # ── Script'ten analiz başlıkları çıkar (tutarlılık için) ──────────
+        analyze_items = _extract_analyze_items_from_script(script_text, topic, is_long=True)
 
         timestamps = [
-            ("00:00", f"Hook & Key Stat on {topic.title()}"),
+            ("00:00", f"Hook & Key Stat on {topic.title()[:40]}"),
             ("01:00", "Deep Data Analysis & Physics"),
             ("02:20", "Technical Specifications & Benchmarks"),
             ("03:40", "Industry Trends & Cost Comparison"),
@@ -634,9 +730,13 @@ class CreativeWriter:
             is_long=True
         )
 
+        # ── Brand sanitizasyonu ───────────────────────────────────────────
+        script_text = _sanitize_script(script_text)
+        desc        = _sanitize_script(desc)
+
         return {
             "title": chosen_title,
-            "script": script_data["script"],
+            "script": script_text,
             "voice": "male",
             "tags": final_tags,
             "description": desc,

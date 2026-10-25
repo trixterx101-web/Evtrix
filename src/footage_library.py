@@ -182,6 +182,220 @@ NASA_QUERIES = {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# TOPIC-AWARE QUERY MAP
+# Video konusuna göre spesifik Pexels/Pixabay/Wikimedia/yt sorguları.
+# Ana anahtar: topic string'indeki alt dize eşleşmesi (lowercase).
+# ─────────────────────────────────────────────────────────────────────────────
+TOPIC_QUERY_MAP = {
+    # ── Tesla Modelleri ───────────────────────────────────────────────────────
+    "tesla roadster":       ["Tesla Roadster electric car", "Roadster electric sports car",
+                             "Tesla sports car acceleration", "electric supercar",
+                             "Tesla performance electric", "sports electric vehicle"],
+    "tesla model s":        ["Tesla Model S driving", "Tesla sedan electric highway",
+                             "Model S performance test", "Tesla luxury sedan"],
+    "tesla model 3":        ["Tesla Model 3 highway", "Tesla Model 3 city drive",
+                             "Tesla compact electric", "Model 3 charging"],
+    "tesla model y":        ["Tesla Model Y driving", "Tesla SUV electric",
+                             "Model Y road trip", "Tesla crossover EV"],
+    "tesla cybertruck":     ["Tesla Cybertruck driving", "Cybertruck electric pickup",
+                             "electric pickup truck off road", "Tesla truck towing"],
+    "tesla semi":           ["Tesla Semi truck highway", "electric semi truck driving",
+                             "Tesla big rig electric", "electric freight truck"],
+    "tesla fsd":            ["Tesla autopilot driving", "Tesla FSD highway",
+                             "self driving Tesla camera", "autonomous Tesla vehicle"],
+    "tesla optimus":        ["Tesla humanoid robot", "Optimus robot factory",
+                             "Tesla robot walking", "humanoid robot technology"],
+    "tesla":                ["Tesla electric car driving", "Tesla charging supercharger",
+                             "Tesla autopilot highway", "Tesla factory Gigafactory"],
+    # ── Tesla Sorunları / Spesifik Konular ───────────────────────────────────
+    "frozen door":          ["car door frozen winter", "electric car winter cold",
+                             "car ice winter freeze", "EV cold weather test"],
+    "door handle":          ["car door handle closeup", "electric car exterior detail",
+                             "car door open mechanism", "vehicle door technology"],
+    "range anxiety":        ["electric car charging station", "EV range dashboard",
+                             "electric car highway range", "EV charging wait"],
+    "supercharger":         ["Tesla supercharger station", "EV fast charging station",
+                             "DC fast charger plug", "charging electric car highway"],
+    # ── Diğer EV Markaları & Modelleri ───────────────────────────────────────
+    "bmw i4":               ["BMW i4 electric driving", "BMW i4 M50 performance", "BMW i4 highway test", "BMW electric sedan"],
+    "bmw ix":               ["BMW iX electric SUV", "BMW iX interior technology", "BMW iX driving luxury"],
+    "bmw i7":               ["BMW i7 electric luxury sedan", "BMW i7 driving", "BMW electric flagship"],
+    "bmw":                  ["BMW electric vehicle driving", "BMW i4 electric", "BMW iX SUV", "BMW EV performance", "BMW electric car"],
+    "mercedes eqs":         ["Mercedes EQS electric luxury", "Mercedes EQS driving", "Mercedes EQS interior"],
+    "mercedes eqe":         ["Mercedes EQE electric sedan", "Mercedes EQE driving test"],
+    "mercedes":             ["Mercedes electric vehicle", "Mercedes EQS driving", "Mercedes EQ electric car", "Mercedes EV luxury"],
+    "porsche taycan":       ["Porsche Taycan driving", "Porsche Taycan track acceleration", "Taycan Turbo S electric", "Taycan charging"],
+    "porsche":              ["Porsche Taycan electric", "Porsche electric sports car", "Taycan performance driving", "Porsche EV"],
+    "audi e-tron":          ["Audi e-tron electric SUV", "Audi e-tron GT driving", "Audi RS e-tron GT", "Audi electric car"],
+    "audi":                 ["Audi electric vehicle", "Audi e-tron GT driving", "Audi Q8 e-tron", "Audi EV"],
+    "byd seal":             ["BYD Seal electric sedan", "BYD Seal driving performance", "BYD electric car"],
+    "byd atto":             ["BYD Atto 3 electric SUV", "BYD electric vehicle"],
+    "byd":                  ["BYD electric car driving", "BYD Blade battery EV", "BYD EV highway", "BYD electric vehicle"],
+    "xiaomi su7":           ["Xiaomi SU7 electric car", "Xiaomi SU7 driving", "Xiaomi EV acceleration", "Xiaomi electric sedan"],
+    "xiaomi":               ["Xiaomi SU7 electric car", "Xiaomi electric vehicle", "Xiaomi EV driving"],
+    "rimac nevera":         ["Rimac Nevera electric hypercar", "Rimac Nevera acceleration", "Rimac top speed test"],
+    "rimac":                ["Rimac Nevera hypercar", "Rimac electric performance", "electric hypercar Rimac"],
+    "rivian r1t":           ["Rivian R1T electric truck", "Rivian off road driving", "Rivian electric pickup"],
+    "rivian r1s":           ["Rivian R1S electric SUV", "Rivian electric vehicle"],
+    "rivian":               ["Rivian electric truck adventure", "Rivian R1T off road", "Rivian electric vehicle", "adventure electric vehicle"],
+    "lucid air":            ["Lucid Air electric sedan", "Lucid Air Sapphire acceleration", "Lucid Motors luxury EV"],
+    "lucid":                ["Lucid Air electric sedan", "luxury electric car interior", "Lucid Motors electric vehicle", "premium electric sedan"],
+    "polestar":             ["Polestar 2 electric driving", "Polestar 3 electric SUV", "Polestar EV performance"],
+    "nio":                  ["NIO electric vehicle", "NIO battery swap station", "NIO ET7 sedan driving", "NIO EV"],
+    "zeekr":                ["Zeekr 001 electric shooting brake", "Zeekr 007 sedan", "Zeekr electric vehicle"],
+    "hyundai ioniq 5":      ["Hyundai Ioniq 5 electric", "IONIQ 5 driving", "Hyundai Ioniq 5 fast charging"],
+    "hyundai ioniq 6":      ["Hyundai Ioniq 6 electric streamliner", "IONIQ 6 highway drive"],
+    "hyundai":              ["Hyundai Ioniq electric", "IONIQ 6 driving", "Hyundai EV charging", "Hyundai electric vehicle"],
+    "kia ev6":              ["Kia EV6 electric crossover", "Kia EV6 GT acceleration", "Kia EV6 driving"],
+    "kia ev9":              ["Kia EV9 3 row electric SUV", "Kia EV9 driving"],
+    "kia":                  ["Kia EV6 electric", "Kia EV9 electric SUV", "Kia electric vehicle driving"],
+    "volvo ex30":           ["Volvo EX30 compact electric", "Volvo electric SUV driving"],
+    "volvo":                ["Volvo EX90 electric", "Volvo EX30 electric SUV", "Volvo electric car"],
+    "ford lightning":       ["Ford F-150 Lightning electric", "electric pickup Ford", "Ford electric truck towing", "Lightning EV charging"],
+    "ford mach-e":          ["Ford Mustang Mach-E driving", "Mustang Mach-E electric", "Ford electric SUV"],
+    "ford":                 ["Ford F-150 Lightning electric", "Ford Mustang Mach-E", "Ford electric vehicle"],
+    "gm":                   ["GM electric vehicle", "Chevrolet Corvette EV", "GMC Hummer EV truck", "General Motors electric car"],
+    "hummer ev":            ["GMC Hummer EV driving", "electric Hummer crab walk", "Hummer EV truck off road"],
+    "volkswagen":           ["Volkswagen ID4 electric", "VW ID Buzz electric van", "Volkswagen EV driving", "ID7 electric sedan"],
+    # ── Batarya Teknolojisi ───────────────────────────────────────────────────
+    "solid state battery":  ["solid state battery laboratory", "battery research lab",
+                             "next generation battery cell", "battery technology future"],
+    "lfp battery":          ["LFP lithium battery cell", "iron phosphate battery",
+                             "battery cell manufacturing", "battery pack production"],
+    "battery degradation":  ["battery capacity test", "EV battery health monitoring",
+                             "battery cycle aging", "electric car battery pack"],
+    "battery cost":         ["battery cell manufacturing cost", "EV battery factory",
+                             "battery production line", "lithium battery supply chain"],
+    "sodium battery":       ["sodium ion battery research", "next gen battery lab",
+                             "battery technology innovation", "energy storage research"],
+    "battery":              ["electric car battery pack", "battery cell manufacturing",
+                             "lithium battery technology", "EV battery thermal management"],
+    # ── Şarj Teknolojisi ─────────────────────────────────────────────────────
+    "800 volt":             ["800 volt EV fast charging", "DC fast charger high voltage",
+                             "Porsche Taycan charging", "ultra fast charging station"],
+    "wireless charging":    ["wireless EV charging road", "inductive charging electric car",
+                             "contactless EV charger", "wireless charging technology"],
+    "v2g":                  ["vehicle to grid energy", "V2G EV charging", "EV home energy",
+                             "bidirectional EV charger"],
+    "fast charging":        ["DC fast charging station", "EV fast charger",
+                             "electric car charging highway", "rapid charge EV"],
+    "charging":             ["electric car charging station", "EV charger plug in",
+                             "fast charging electric vehicle", "home EV charging"],
+    # ── Otonom Sürüş ─────────────────────────────────────────────────────────
+    "autopilot":            ["Tesla autopilot highway", "self driving car camera",
+                             "autonomous vehicle sensor", "AI driving technology"],
+    "self driving":         ["autonomous vehicle driving", "self driving car lidar",
+                             "AI autopilot highway", "self driving sensor array"],
+    "lidar":                ["LiDAR sensor self driving", "autonomous vehicle lidar",
+                             "lidar technology car roof", "self driving lidar scan"],
+    "autonomous":           ["autonomous vehicle driving", "self driving car city",
+                             "autonomous taxi robot", "driverless car highway"],
+    # ── Genel EV Konuları ─────────────────────────────────────────────────────
+    "range":                ["electric car range test highway", "EV range dashboard",
+                             "electric vehicle long range", "EV highway efficiency"],
+    "efficiency":           ["EV energy efficiency dashboard", "electric car aerodynamics",
+                             "EV powertrain efficiency", "electric motor performance"],
+    "cold weather":         ["electric car winter driving", "EV cold weather test",
+                             "EV battery winter performance", "snow electric car driving"],
+    "winter":               ["electric car snow driving", "EV winter range",
+                             "EV cold weather charging", "electric car ice"],
+    "towing":               ["electric truck towing capacity", "EV towing test",
+                             "electric pickup trailer", "EV truck payload"],
+    "cost":                 ["electric car total cost ownership", "EV vs gas cost",
+                             "electric car savings", "EV fuel cost comparison"],
+    "market":               ["electric vehicle market growth", "EV sales chart",
+                             "EV market global", "electric car adoption"],
+    "factory":              ["electric car factory production", "EV manufacturing robot",
+                             "Gigafactory production line", "car assembly automation"],
+    "aerodynamic":          ["electric car aerodynamics wind tunnel", "EV drag coefficient",
+                             "aerodynamic car design", "smooth electric sedan"],
+    # ── AI / Robotik ─────────────────────────────────────────────────────────
+    "artificial intelligence": ["AI self driving car", "machine learning automotive",
+                                "AI chip processor NVIDIA", "deep learning visualization"],
+    "robot":                ["robot arm car factory", "humanoid robot walking",
+                             "industrial robot welding", "factory automation robot"],
+    "optimus":              ["Tesla Optimus robot", "humanoid robot walking",
+                             "Tesla robot factory work", "AI humanoid robot"],
+    # ── Geleceğe Dönük ───────────────────────────────────────────────────────
+    "flying car":           ["electric VTOL aircraft", "flying car urban air mobility",
+                             "eVTOL air taxi", "electric airplane flying"],
+    "hydrogen":             ["hydrogen fuel cell vehicle", "hydrogen car driving",
+                             "fuel cell technology", "hydrogen filling station"],
+    "hyperloop":            ["hyperloop electric train", "high speed electric transport",
+                             "maglev train futuristic", "electric high speed rail"],
+}
+
+
+# Araç marka ve modelleri — genel konulardan (battery, charging, range) daima DAHA YÜKSEK ÖNCELİKLİDİR
+VEHICLE_BRAND_KEYS = {
+    "tesla roadster", "tesla model s", "tesla model 3", "tesla model y", "tesla cybertruck",
+    "tesla semi", "tesla fsd", "tesla optimus", "tesla",
+    "bmw i4", "bmw ix", "bmw i7", "bmw",
+    "mercedes eqs", "mercedes eqe", "mercedes",
+    "porsche taycan", "porsche",
+    "audi e-tron", "audi",
+    "byd seal", "byd atto", "byd",
+    "xiaomi su7", "xiaomi",
+    "rimac nevera", "rimac",
+    "rivian r1t", "rivian r1s", "rivian",
+    "lucid air", "lucid",
+    "polestar", "nio", "zeekr",
+    "hyundai ioniq 5", "hyundai ioniq 6", "hyundai",
+    "kia ev6", "kia ev9", "kia",
+    "volvo ex30", "volvo",
+    "ford lightning", "ford mach-e", "ford",
+    "hummer ev", "gm", "volkswagen"
+}
+
+
+def _resolve_queries(topic: str, fallback_category: str = "electric_vehicle") -> list:
+    """
+    Topic string'ini footage arama sorgularına çevirir.
+    KURAL: Konuda herhangi bir araç/marka geçiyorsa (BMW, Tesla, Porsche vs.),
+    araç klipleri kesinlikle en yüksek öncelikle seçilir!
+    """
+    t = topic.lower().strip()
+
+    # 1. ÖNCE ARAÇ/MARKA KONTROLÜ (En yüksek öncelik: Araç her zaman kazanır)
+    matched_vehicle_key = None
+    for key in sorted(VEHICLE_BRAND_KEYS, key=len, reverse=True):
+        if key in t:
+            matched_vehicle_key = key
+            break
+
+    if matched_vehicle_key:
+        queries = list(TOPIC_QUERY_MAP[matched_vehicle_key])
+        logger.info(f"[QueryResolver] 🚗 Araç eşleşti: '{matched_vehicle_key}' for topic '{topic}' → {len(queries)} vehicle queries")
+        # Ekstra çeşitlilik için genel EV klipleri de ekle (arka sıralara)
+        extra = random.sample(QUERY_POOL[fallback_category], min(4, len(QUERY_POOL[fallback_category])))
+        return queries + extra
+
+    # 2. Araç yoksa diğer teknik/konu anahtarlarına bak
+    for key in sorted(TOPIC_QUERY_MAP.keys(), key=len, reverse=True):
+        if key in t:
+            queries = list(TOPIC_QUERY_MAP[key])
+            logger.info(f"[QueryResolver] Topic '{topic}' → key '{key}' → {len(queries)} queries")
+            extra = random.sample(QUERY_POOL[fallback_category], min(4, len(QUERY_POOL[fallback_category])))
+            return queries + extra
+
+    # 3. Topic kelimelerinden dinamik sorgu üret
+    words = [w for w in t.split() if len(w) > 3]
+    if words:
+        dynamic = []
+        if len(words) >= 2:
+            dynamic.append(f"{words[0]} {words[1]} footage")
+            dynamic.append(f"{words[0]} {words[1]} electric vehicle")
+        dynamic.append(f"{words[0]} electric car technology")
+        dynamic.append(f"{words[0]} EV data")
+        logger.info(f"[QueryResolver] Topic '{topic}' → dynamic queries: {dynamic}")
+        fallback = random.sample(QUERY_POOL[fallback_category], min(6, len(QUERY_POOL[fallback_category])))
+        return dynamic + fallback
+
+    # 4. Tam fallback
+    logger.info(f"[QueryResolver] Topic '{topic}' → full fallback pool")
+    return list(QUERY_POOL.get(fallback_category, QUERY_POOL["electric_vehicle"]))
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Used-clip tracking — stored by SOURCE_ID (not file hash) for cross-run memory
 # ─────────────────────────────────────────────────────────────────────────────
 USED_CLIPS_FILE = "used_clips.json"
@@ -272,13 +486,17 @@ class FootageLibrary:
     # ─────────────────────────────────────────────────────────────────────────
     # Public: get clips for LONG video (maximum variety)
     # ─────────────────────────────────────────────────────────────────────────
-    def get_varied_clips_for_long_video(self, topic: str, count: int, format: str = "long") -> list[str]:
+    def get_varied_clips_for_long_video(self, topic: str, count: int, format: str = "long") -> list:
         """
         Fetch up to `count` unique, never-before-used EV clips for a long video.
-        Rotates through the full QUERY_POOL for maximum variety.
+        Topic-aware: konu ne ise ona uygun footage getirir.
         """
-        query_pool = list(QUERY_POOL.get(topic, QUERY_POOL["electric_vehicle"]))
-        random.shuffle(query_pool)
+        # Topic-aware sorgu havuzu — en özel araç sorguları (ilk 6) daima öncelikli
+        topic_queries = _resolve_queries(topic)
+        query_pool    = list(topic_queries[:6])
+        remainder     = list(topic_queries[6:])
+        random.shuffle(remainder)
+        query_pool.extend(remainder)
 
         clips      = []
         seen_paths = set()
@@ -406,14 +624,14 @@ class FootageLibrary:
     # ─────────────────────────────────────────────────────────────────────────
     # Source: Pexels
     # ─────────────────────────────────────────────────────────────────────────
-    def _fetch_pexels(self, topic: str, count: int, format: str) -> list[str]:
+    def _fetch_pexels(self, topic: str, count: int, format: str) -> list:
         api_key = os.getenv("PEXELS_API_KEY")
         if not api_key:
             return []
 
-        pool        = QUERY_POOL.get(topic, QUERY_POOL["electric_vehicle"])
-        # Use 3 random queries per call for more variety
-        queries     = random.sample(pool, min(3, len(pool)))
+        # Topic-aware sorgular — araca/konuya en uygun ilk sorgular kesinlikle öncelikli alınır
+        all_queries = _resolve_queries(topic)
+        queries     = all_queries[:min(5, len(all_queries))]
         orientation = "portrait" if format == "shorts" else "landscape"
         results     = []
         seen        = set()
@@ -464,15 +682,16 @@ class FootageLibrary:
     # ─────────────────────────────────────────────────────────────────────────
     # Source: Pixabay
     # ─────────────────────────────────────────────────────────────────────────
-    def _fetch_pixabay(self, topic: str, count: int, format: str) -> list[str]:
+    def _fetch_pixabay(self, topic: str, count: int, format: str) -> list:
         api_key = os.getenv("PIXABAY_API_KEY")
         if not api_key:
             return []
 
-        pool    = QUERY_POOL.get(topic, QUERY_POOL["electric_vehicle"])
-        queries = random.sample(pool, min(3, len(pool)))
-        results = []
-        seen    = set()
+        # Topic-aware sorgular — araca/konuya en uygun ilk sorgular öncelikli
+        all_queries = _resolve_queries(topic)
+        queries     = all_queries[:min(5, len(all_queries))]
+        results     = []
+        seen        = set()
 
         for query in queries:
             if len(results) >= count:
@@ -517,13 +736,14 @@ class FootageLibrary:
             return ["yt-dlp"]
         return [sys.executable, "-m", "yt_dlp"]
 
-    def _fetch_youtube_ytdlp(self, topic: str, count: int, format: str) -> list[str]:
+    def _fetch_youtube_ytdlp(self, topic: str, count: int, format: str) -> list:
         """yt-dlp CC-licensed search — no API key required."""
         base_cmd = self._get_ytdlp_cmd()
-        pool     = QUERY_POOL.get(topic, QUERY_POOL["electric_vehicle"])
-        queries  = random.sample(pool, min(count, len(pool)))
-        results  = []
-        seen     = set()
+        # Topic-aware sorgular
+        all_queries = _resolve_queries(topic)
+        queries     = random.sample(all_queries, min(count, len(all_queries)))
+        results     = []
+        seen        = set()
 
         for q in queries:
             if len(results) >= count:
@@ -588,10 +808,11 @@ class FootageLibrary:
         if not api_key:
             return []
 
-        pool    = QUERY_POOL.get(topic, QUERY_POOL["electric_vehicle"])
-        queries = random.sample(pool, min(3, len(pool)))
-        results = []
-        seen    = set()
+        # Topic-aware sorgular — araca/konuya en uygun ilk sorgular öncelikli
+        all_queries = _resolve_queries(topic)
+        queries     = all_queries[:min(5, len(all_queries))]
+        results     = []
+        seen        = set()
 
         try:
             youtube = build("youtube", "v3", developerKey=api_key)
@@ -655,15 +876,17 @@ class FootageLibrary:
     # ─────────────────────────────────────────────────────────────────────────
     # Source: Wikimedia Commons
     # ─────────────────────────────────────────────────────────────────────────
-    def _fetch_wikimedia(self, topic: str, count: int, format: str) -> list[str]:
-        query = random.choice(QUERY_POOL.get(topic, ["electric vehicle"]))
+    def _fetch_wikimedia(self, topic: str, count: int, format: str) -> list:
+        # Topic-aware sorgu — konuya özgü Wikimedia CC videoları
+        topic_queries = _resolve_queries(topic)
+        query = random.choice(topic_queries[:6])  # ilk 6 (en spesifik) arasından seç
         params = {
-            "action": "query",
-            "list":   "search",
-            "srsearch":   f"{query} filetype:video",
+            "action":      "query",
+            "list":        "search",
+            "srsearch":    f"{query} filetype:video",
             "srnamespace": "6",
-            "srlimit":  count * 3,
-            "format":   "json"
+            "srlimit":     count * 3,
+            "format":      "json"
         }
         try:
             r = self._session.get(

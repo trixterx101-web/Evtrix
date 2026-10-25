@@ -229,7 +229,7 @@ class EvcarixOrchestrator:
                 topic_key = v
                 break
 
-        top_video_list = self.footage_library.get_fresh_clips(topic=topic_key, count=6, format="shorts")
+        top_video_list = self.footage_library.get_fresh_clips(topic=full_topic, count=6, format="shorts")
         top_video = top_video_list[0] if top_video_list else None
         
         if not top_video:
@@ -375,14 +375,14 @@ class EvcarixOrchestrator:
         # (Editor klipleri dolanırsa shuffle ile karıştırır)
         LONG_CLIP_TARGET = 25
         top_video_list = self.footage_library.get_varied_clips_for_long_video(
-            topic=topic_key, count=LONG_CLIP_TARGET, format="long"
+            topic=full_topic, count=LONG_CLIP_TARGET, format="long"
         )
 
         # Yetersizse standart get_fresh_clips ile de topla
         if len(top_video_list) < 6:
             print(f"      Ek kaynak taranıyor ({len(top_video_list)} klip bulundu)...", flush=True)
             extra = self.footage_library.get_fresh_clips(
-                topic=topic_key, count=LONG_CLIP_TARGET - len(top_video_list), format="long"
+                topic=full_topic, count=LONG_CLIP_TARGET - len(top_video_list), format="long"
             )
             seen = set(top_video_list)
             for c in extra:

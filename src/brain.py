@@ -185,25 +185,28 @@ def _improve_title_with_gemini(topic: str, raw_title: str) -> str:
     """
     Gemini ile başlığı profesyonel formüle göre iyileştir.
     raw_title zayıfsa Gemini yeniden üretir.
+    Üretilen başlık topic'le ilgisiz olursa raw_title'a döner.
     """
     try:
-
         from src.writer import call_gemini, call_groq
 
-        prompt = f"""You are a YouTube title expert for the channel "Evcarix" — the #1 EV data channel. Topics: EVs, AI, Battery Tech, Robotics, Future Technology.
+        # Topic'in ana anahtar kelimelerini al
+        topic_words = [w.lower() for w in topic.split() if len(w) > 3][:5]
+
+        prompt = f"""You are a YouTube title expert for the channel "Evcarix" — the #1 EV data channel.
 
 Topic: {topic}
 Current title: {raw_title}
 
 Generate ONE viral YouTube title following these rules:
 1. Maximum 70 characters
-2. Creates curiosity or shock
-3. Contains a specific number, fact, or question when possible
-4. No clickbait lies — must be relevant to EV/battery/AI topic
+2. MUST be specifically about: "{topic}" — do NOT write a generic EV title
+3. Creates curiosity or shock
+4. Contains a specific number, fact, or question when possible
 5. English only. US/Europe/Global perspective.
 6. NO emojis. NO special symbols. Plain text only.
 7. NO hashtags. NO brand names as first word.
-8. Use one of these proven formulas:
+8. Use one of these proven formulas replacing [X] with the specific topic:
    - "Nobody Is Talking About [X] — But They Should Be"
    - "I Tested [X] for 30 Days — The Results Are Shocking"
    - "Why [X] Will Change Everything in 2026"
@@ -227,7 +230,12 @@ Return ONLY the title. No quotes. No explanation. No emojis."""
             return raw_title
         # İngilizce kontrolü — non-English gelirse raw_title'a dön
         if not _is_english_title(new_title):
-            print(f"[Brain] ⚠️ Gemini non-English başlık ürett i, reddedildi: {new_title}")
+            print(f"[Brain] ⚠️ Gemini non-English başlık ürettti, reddedildi: {new_title}")
+            return raw_title
+        # Topic relevance kontrolü — başlık konuyla ilgisizse raw_title'a dön
+        new_lower = new_title.lower()
+        if topic_words and not any(w in new_lower for w in topic_words):
+            print(f"[Brain] ⚠️ Başlık topic ile ilgisiz, reddedildi: {new_title}")
             return raw_title
 
         print(f"[Brain] 📝 Başlık iyileştirildi: {new_title}")
