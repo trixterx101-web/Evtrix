@@ -9,3 +9,7 @@ __pycache__/
 *.log
 scratch/
 used_topics.json
+# YouTube token files - NEVER commit
+_get_yt_token.py
+token_NEW.json
+token.json
