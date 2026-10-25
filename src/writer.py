@@ -135,17 +135,18 @@ def _available_keys(keys: list[str]) -> list[str]:
 
 # Güncel çalışan modeller (2026-09)
 GROQ_MODELS = [
-    "llama-3.3-70b-versatile",       # Groq'un en güncel güçlü modeli
-    "llama-3.1-70b-specdec",          # Hızlı büyük model
-    "llama3-groq-8b-8192-tool-use-preview",  # Groq 8B araç destekli
-    "mixtral-8x7b-32768",             # Mixtral stabil
-    "llama-3.2-11b-text-preview",     # Yeni Llama 3.2
+    "meta-llama/llama-4-maverick-17b-128e-instruct",  # 2026 Llama 4 Maverick
+    "meta-llama/llama-4-scout-17b-16e-instruct",      # 2026 Llama 4 Scout
+    "llama3-70b-8192",                                 # Stabil fallback
+    "compound-beta",                                   # Groq Compound Beta
+    "llama3-8b-8192",                                  # En basit fallback
 ]
 GEMINI_MODELS = [
-    "gemini-2.0-flash",               # Stabil ana model
-    "gemini-2.0-flash-exp",           # Deneysel hızlı
-    "gemini-2.5-flash-lite",          # Yeni lite model
-    "gemini-2.5-flash-preview-05-20", # Preview sürüm
+    "gemini-3.8-flash",               # 2026 ana model (Google onerisi)
+    "gemini-3.5-flash-lite",          # 2026 lite model (Google onerisi)
+    "gemini-1.5-flash",               # Stabil fallback
+    "gemini-1.5-pro",                 # Pro fallback
+    "gemini-1.0-pro",                 # Son care fallback
 ]
 
 def call_groq(prompt: str, model: Optional[str] = None, max_tokens: int = 900) -> Optional[str]:

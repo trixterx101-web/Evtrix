@@ -73,17 +73,30 @@ TOPIC_KEYWORDS = {
 
 # ── EV kanalıyla alakasız saçma topic kelimeleri ──────────────────────────
 INVALID_TOPIC_WORDS = {
-    # Saçma/alakasız
-    "rubber band", "rubber bands", "cooking", "recipe", "food", "fashion",
-    "makeup", "gaming", "fortnite", "minecraft", "tiktok", "dancing",
-    "prank", "challenge", "viral", "meme", "funny", "comedy",
-    # Gerçek EV kanalıyla alakasız
-    "yoga", "fitness", "workout", "diet", "weight loss", "crypto",
-    "bitcoin", "stock market", "forex", "nft", "metaverse",
-    "pet", "dog", "cat", "animal", "flower", "garden",
-    "travel", "vacation", "hotel", "restaurant",
-    # Genel saçmalık işaretleri
-    "testing cars using rubber", "rubber band car",
+    # Gaming / konsol
+    "ps5", "ps4", "ps3", "playstation", "xbox", "nintendo", "switch",
+    "jailbreak", "game console", "console gaming", "gaming", "video game",
+    "fortnite", "minecraft", "cod", "call of duty", "gta", "grand theft",
+    "apex legends", "valorant", "roblox", "among us", "twitch", "esports",
+    "streamer", "livestream", "speedrun", "mod", "modding",
+    # Spor / eglence
+    "soccer", "football", "basketball", "baseball", "hockey", "tennis",
+    "golf", "nfl", "nba", "fifa", "wrestling", "boxing", "mma", "ufc",
+    "1win", "extreme sport", "stunt", "crash", "accident",
+    # Muzik / dans / eglence
+    "tiktok", "dancing", "dance", "music video", "pop star", "rapper",
+    "celebrity", "kardashian", "drama", "gossip", "dating",
+    "prank", "meme", "funny", "comedy", "roast",
+    # Giyim / yemek / saglik
+    "makeup", "fashion", "recipe", "cooking", "food", "diet", "weight loss",
+    "yoga", "fitness", "workout", "garden", "flower", "pet", "dog", "cat", "animal",
+    # Finans / kripto (EV haber degil)
+    "crypto", "bitcoin", "stock market", "forex", "nft", "metaverse",
+    "trading", "investment tips",
+    # Seyahat / gunluk yasam
+    "travel", "vacation", "hotel", "restaurant", "shopping",
+    # Rubber band / saclama
+    "rubber band", "rubber bands", "testing cars using rubber", "rubber band car",
 }
 
 
@@ -106,13 +119,36 @@ def _sanitize_title(title: str) -> str:
     return cleaned
 
 
+EV_REQUIRED_WORDS = {
+    # En az bir tanesinin olması gerekiyor (EV/araba/robot/teknoloji)
+    "electric", "ev ", " ev", "tesla", "bmw", "audi", "mercedes", "volkswagen",
+    "porsche", "rivian", "lucid", "hyundai", "kia", "ford", "gm ",
+    "chevy", "chevrolet", "dodge", "lamborghini", "ferrari", "mclaren",
+    "toyota", "honda", "nissan", "volvo", "polestar", "xpeng", "nio",
+    "byd", "geely", "stellantis", "jeep", "ram", "cadillac",
+    "battery", "charging", "range", "autopilot", "self-driving",
+    "autonomous", "motor", "drivetrain", "roadster", "model s",
+    "model 3", "model x", "model y", "cybertruck", "semi",
+    "robot", "robotaxi", "waymo", "cruise", "ai vehicle",
+    "car", "truck", "suv", "vehicle", "sedan", "coupe", "supercar",
+    "hypercar", "horsepower", "torque", "acceleration", "drag race",
+    "0-60", "top speed", "nurburgring", "quarter mile",
+}
+
+
 def _is_topic_valid(topic: str) -> bool:
     """Topic'in EV kanalıyla alakalı olup olmadığını kontrol et."""
     topic_lower = topic.lower()
+    # 1) Kara listedeki kelime varsa reddet
     for bad_word in INVALID_TOPIC_WORDS:
         if bad_word in topic_lower:
-            print(f"[Brain] ❌ Geçersiz topic ('{bad_word}'): {topic[:60]}")
+            print(f"[Brain] INVALID topic ({bad_word}): {topic[:60]}")
             return False
+    # 2) EV/araba/teknoloji ile ilgili en az bir kelime yoksa reddet
+    has_ev_word = any(ev_word in topic_lower for ev_word in EV_REQUIRED_WORDS)
+    if not has_ev_word:
+        print(f"[Brain] INVALID topic (no EV/car keyword): {topic[:60]}")
+        return False
     return True
 
 
