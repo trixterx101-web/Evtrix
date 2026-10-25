@@ -135,11 +135,10 @@ def _available_keys(keys: list[str]) -> list[str]:
 
 # Güncel çalışan modeller (2026-09)
 GROQ_MODELS = [
-    "meta-llama/llama-4-maverick-17b-128e-instruct",  # 2026 Llama 4 Maverick
-    "meta-llama/llama-4-scout-17b-16e-instruct",      # 2026 Llama 4 Scout
-    "llama3-70b-8192",                                 # Stabil fallback
-    "compound-beta",                                   # Groq Compound Beta
-    "llama3-8b-8192",                                  # En basit fallback
+    "openai/gpt-oss-120b",   # 2026 Groq - calisiyor
+    "openai/gpt-oss-20b",    # 2026 Groq - calisiyor
+    "qwen/qwen3.8-27b",      # 2026 Groq - calisiyor
+    "allam-2-7b",            # 2026 Groq fallback
 ]
 GEMINI_MODELS = [
     "gemini-3.8-flash",               # 2026 ana model (Google onerisi)
