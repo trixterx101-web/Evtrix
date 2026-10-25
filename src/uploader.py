@@ -162,7 +162,9 @@ class YouTubeUploader:
             else:
                 break
 
-        final_tags = cleaned_tags
+        # YouTube bazen fazla veya belirli tag kombinasyonlarina invalidTags 400 verir.
+        # Guvenlik icin temiz ve az sayida (max 12) tag kullanalim.
+        final_tags = cleaned_tags[:12]
 
         body = {
             "snippet": {
@@ -244,6 +246,12 @@ class YouTubeUploader:
                 return video_id
             except (HttpError, ResumableUploadError) as e:
                 err_str = str(e)
+                if "invalidTags" in err_str or "invalid video keywords" in err_str:
+                    print("[Uploader] WARN: YouTube tagleri reddetti (invalidTags). Tagler sadelestirilerek tekrar deneniyor...", flush=True)
+                    body["snippet"]["tags"] = ["EV", "Electric Vehicles", "Evcarix"]
+                    if attempt < max_retries:
+                        time.sleep(2)
+                        continue
                 if "503" in err_str or "500" in err_str or "Service Unavailable" in err_str:
                     if attempt < max_retries:
                         wait = 30 * (2 ** (attempt - 1))

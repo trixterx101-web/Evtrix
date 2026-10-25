@@ -140,10 +140,17 @@ class TopicQueue:
 
     # ── Yardımcı Filtreler ────────────────────────────────────────────
     def _is_relevant(self, text: str) -> bool:
-        tl = text.lower()
-        if any(b in tl for b in BLOCKED):
-            return False
-        return any(kw in tl for kw in EV_KEYWORDS)
+        # Brain'deki EV_REQUIRED_WORDS ve INVALID_TOPIC_WORDS mantigini kullan
+        try:
+            from src.brain import _is_topic_valid
+            return _is_topic_valid(text)
+        except Exception:
+            tl = text.lower()
+            if any(b in tl for b in BLOCKED):
+                return False
+            # 'ev' tek basina gecmeli (word boundary)
+            import re
+            return bool(re.search(r'\b(ev|evs|electric|battery|charging|tesla|byd|rivian|car|vehicle)\b', tl))
 
     def _is_used(self, topic: str) -> bool:
         tl = topic.lower()[:60]
