@@ -2,11 +2,11 @@ name: Evcarix Ultra-HD Pipeline v2
 
 on:
   schedule:
-    - cron: '0 12 * * 5'   # Sadece Cuma Günleri TSİ 15:00 — Otomatik Haftalık Uzun Video + Short
+    - cron: '0 12 * * 5'   # Sadece Cuma GÃ¼nleri TSÄ° 15:00 â€” Otomatik HaftalÄ±k Uzun Video + Short
   workflow_dispatch:
     inputs:
       video_type:
-        description: 'Video formatı'
+        description: 'Video formatÄ±'
         required: true
         default: 'short'
         type: choice
@@ -14,7 +14,7 @@ on:
           - short
           - long
       content_mode:
-        description: 'İçerik modu'
+        description: 'Ä°Ã§erik modu'
         required: true
         default: 'auto'
         type: choice
@@ -32,7 +32,7 @@ on:
           - smart cities
           - devices of the future
       use_bg_music:
-        description: 'Arka plan müziği ekle (ücretsiz, CC-BY)'
+        description: 'Arka plan mÃ¼ziÄŸi ekle (Ã¼cretsiz, CC-BY)'
         required: false
         default: 'true'
         type: choice
@@ -40,7 +40,7 @@ on:
           - 'true'
           - 'false'
       forced_topic:
-        description: 'Short için zorunlu konu (boş = otomatik seç). Örn: Humanoid Robots 2025 Goldman Sachs Report'
+        description: 'Short iÃ§in zorunlu konu (boÅŸ = otomatik seÃ§). Ã–rn: Humanoid Robots 2025 Goldman Sachs Report'
         required: false
         default: ''
         type: string
@@ -51,34 +51,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1]  # [1, 2] yaparak paralel 2 video üretilebilir (dikkat: 2x süre)
+        slot: [1]  # [1, 2] yaparak paralel 2 video Ã¼retilebilir (dikkat: 2x sÃ¼re)
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONUNBUFFERED: 1
       USE_BG_MUSIC: ${{ github.event.inputs.use_bg_music || 'true' }}
 
     steps:
-      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      # â”€â”€ 1. Checkout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Checkout Repository
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
 
-      # ── 2. Python Kurulum ────────────────────────────────────────────────────
+      # â”€â”€ 2. Python Kurulum â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Set up Python 3.11
         uses: actions/setup-python@v5.3.0
         with:
           python-version: '3.11'
           cache: 'pip'
 
-      # ── 3. APT Cache ─────────────────────────────────────────────────────────
+      # â”€â”€ 3. APT Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Cache APT packages
         uses: actions/cache@v4.2.0
         with:
           path: /var/cache/apt/archives
           key: apt-ffmpeg-fonts-${{ runner.os }}-noble-v2
 
-      # ── 4. Sistem Bağımlılıkları ──────────────────────────────────────────────
+      # â”€â”€ 4. Sistem BaÄŸÄ±mlÄ±lÄ±klarÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Install System Dependencies
         run: |
           sudo apt-get update -q
@@ -90,18 +90,18 @@ jobs:
             imagemagick \
             libsm6 libxext6 libxrender-dev
 
-      # ── 5. Python Bağımlılıkları ──────────────────────────────────────────────
+      # â”€â”€ 5. Python BaÄŸÄ±mlÄ±lÄ±klarÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install -r requirements.txt
 
-      - name: 🛠️ Fix ImageMagick Security Policy
+      - name: ğŸ› ï¸ Fix ImageMagick Security Policy
         run: |
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/' /etc/ImageMagick-6/policy.xml
-          echo "✅ ImageMagick policy fixed"
+          echo "âœ… ImageMagick policy fixed"
 
-      # ── 6. HuggingFace Model Cache ────────────────────────────────────────────
+      # â”€â”€ 6. HuggingFace Model Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Restore HuggingFace Model Cache
         uses: actions/cache@v4.2.0
         with:
@@ -109,7 +109,7 @@ jobs:
           key: hf-models-${{ runner.os }}-v2
           restore-keys: hf-models-${{ runner.os }}-
 
-      # ── 7. Ses/Müzik Cache ────────────────────────────────────────────────────
+      # â”€â”€ 7. Ses/MÃ¼zik Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Restore Audio Cache
         uses: actions/cache@v4.2.0
         with:
@@ -117,7 +117,7 @@ jobs:
           key: audio-cache-${{ runner.os }}-v1
           restore-keys: audio-cache-${{ runner.os }}-
 
-      # ── 8. İçerik Geçmişi Cache ───────────────────────────────────────────────
+      # â”€â”€ 8. Ä°Ã§erik GeÃ§miÅŸi Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Restore History Cache
         uses: actions/cache@v4.2.0
         with:
@@ -134,20 +134,20 @@ jobs:
             evcarix-history-v2-
             evcarix-history-
 
-      # ── 9. Sırlar Ayarla ──────────────────────────────────────────────────────
+      # â”€â”€ 9. SÄ±rlar Ayarla â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Setup Secrets
         env:
           YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
           YOUTUBE_CLIENT_SECRET_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRET_JSON }}
         run: python3 src/setup_secrets.py
 
-      # ── 10. Content Mode Belirle ──────────────────────────────────────────────
+      # â”€â”€ 10. Content Mode Belirle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Set Content Mode
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             INPUT_MODE="${{ github.event.inputs.content_mode }}"
-            # Manuel tetiklemede 'auto' seçilirse trend moduna yükselt
-            # — her manuel video yayınlanır yayınlanmaz en güncel trendlerden üretilsin
+            # Manuel tetiklemede 'auto' seÃ§ilirse trend moduna yÃ¼kselt
+            # â€” her manuel video yayÄ±nlanÄ±r yayÄ±nlanmaz en gÃ¼ncel trendlerden Ã¼retilsin
             if [ "$INPUT_MODE" == "auto" ] || [ -z "$INPUT_MODE" ]; then
               echo "CONTENT_MODE=trend" >> $GITHUB_ENV
             else
@@ -157,16 +157,16 @@ jobs:
             echo "FORCED_TOPIC=${{ github.event.inputs.forced_topic }}" >> $GITHUB_ENV
             echo "FORCE_FRESH_TREND=true" >> $GITHUB_ENV
           else
-            # Otomatik zamanlama (Sadece Cuma Günleri TSİ 15:00 — Long Video + Short)
+            # Otomatik zamanlama (Sadece Cuma GÃ¼nleri TSÄ° 15:00 â€” Long Video + Short)
             echo "CONTENT_MODE=trend" >> $GITHUB_ENV
             echo "VIDEO_TYPE=long" >> $GITHUB_ENV
             echo "FORCE_FRESH_TREND=true" >> $GITHUB_ENV
           fi
-          echo "✅ Content Mode: $CONTENT_MODE"
-          echo "✅ Video Type: $VIDEO_TYPE"
+          echo "âœ… Content Mode: $CONTENT_MODE"
+          echo "âœ… Video Type: $VIDEO_TYPE"
 
-      # ── 11. Video Üretimi ─────────────────────────────────────────────────────
-      - name: ⚡ Production Run (Auto-Monitor)
+      # â”€â”€ 11. Video Ãœretimi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      - name: âš¡ Production Run (Auto-Monitor)
         timeout-minutes: 110
         env:
           # LLM
@@ -174,10 +174,10 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GROQ_API_KEY_2: ${{ secrets.GROQ_API_KEY_2 }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          # Görsel Kaynaklar
+          # GÃ¶rsel Kaynaklar
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-          # Ses (isteğe bağlı — ücretli kaynaklar API key gerektirmez)
+          # Ses (isteÄŸe baÄŸlÄ± â€” Ã¼cretli kaynaklar API key gerektirmez)
           FREESOUND_API_KEY: ${{ secrets.FREESOUND_API_KEY }}
           # HuggingFace (Kokoro TTS + SDXL)
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -205,6 +205,8 @@ jobs:
           # GitHub Actions flag
           CI: 'true'
           GITHUB_ACTIONS: 'true'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           echo "=== EVCARIX PIPELINE v2 START ==="
           echo "Video Type : $VIDEO_TYPE"
@@ -212,7 +214,7 @@ jobs:
           echo "BG Music   : $USE_BG_MUSIC"
           python3 main.py
 
-      # ── 12. Geçmiş Cache Kaydet ───────────────────────────────────────────────
+      # â”€â”€ 12. GeÃ§miÅŸ Cache Kaydet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Save History Cache
         if: always()
         uses: actions/cache/save@v4.2.0
@@ -227,7 +229,7 @@ jobs:
             topic_queue.json
           key: evcarix-history-v2-${{ github.run_id }}
 
-      # ── 13. Ses Cache Kaydet ──────────────────────────────────────────────────
+      # â”€â”€ 13. Ses Cache Kaydet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Save Audio Cache
         if: always()
         uses: actions/cache/save@v4.2.0
@@ -235,7 +237,7 @@ jobs:
           path: assets/audio_cache
           key: audio-cache-${{ runner.os }}-v1
 
-      # ── 14. Artifact Yükle ────────────────────────────────────────────────────
+      # â”€â”€ 14. Artifact YÃ¼kle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4.4.0
@@ -246,7 +248,7 @@ jobs:
             license_log.json
           retention-days: 7
 
-      # ── 15. Temizlik Özeti ────────────────────────────────────────────────────
+      # â”€â”€ 15. Temizlik Ã–zeti â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Pipeline Summary
         if: always()
         run: |
