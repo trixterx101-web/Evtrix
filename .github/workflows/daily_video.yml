@@ -205,7 +205,8 @@ jobs:
           # GitHub Actions flag
           CI: 'true'
           GITHUB_ACTIONS: 'true'
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           echo "=== EVCARIX PIPELINE v2 START ==="
