@@ -71,12 +71,15 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      # -- 3. System Dependencies (Fast & Lean) --
+      # -- 3. Setup FFmpeg (Fast CDN - ~3 seconds) --
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
+      # -- 4. Minimal System Dependencies (Fonts & ImageMagick only) --
       - name: Install System Dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
             fonts-liberation \
             fonts-dejavu-core \
             imagemagick
