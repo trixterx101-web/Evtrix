@@ -86,7 +86,6 @@ jobs:
             ffmpeg \
             fonts-liberation \
             fonts-dejavu-core \
-            fonts-noto \
             imagemagick \
             libsm6 libxext6 libxrender-dev
 
