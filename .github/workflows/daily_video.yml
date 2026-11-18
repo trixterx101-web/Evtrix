@@ -76,6 +76,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y --no-install-recommends \
+            ffmpeg \
             fonts-liberation \
             fonts-dejavu-core \
             imagemagick
