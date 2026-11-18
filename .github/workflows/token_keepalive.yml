@@ -1,0 +1,180 @@
+name: Token Keep-Alive
+
+on:
+  schedule:
+    # Refresh token every 3 days to prevent 7-day Testing mode expiry
+    # Monday 06:00 UTC, Wednesday 06:00 UTC, Saturday 06:00 UTC
+    - cron: '0 6 * * 1'
+    - cron: '0 6 * * 3'
+    - cron: '0 6 * * 6'
+  workflow_dispatch:
+
+jobs:
+  refresh-token:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install minimal deps
+        run: |
+          pip install google-auth google-auth-oauthlib google-api-python-client pynacl
+
+      - name: Setup token.json from secret
+        env:
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+          YOUTUBE_CLIENT_SECRET_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRET_JSON }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+        run: |
+          if [ -n "$YOUTUBE_TOKEN_JSON" ]; then
+            echo "$YOUTUBE_TOKEN_JSON" > token.json
+            echo "token.json written from secret"
+          fi
+          if [ -n "$YOUTUBE_CLIENT_SECRET_JSON" ]; then
+            echo "$YOUTUBE_CLIENT_SECRET_JSON" > client_secret.json
+            echo "client_secret.json written from secret"
+          elif [ -n "$YOUTUBE_CLIENT_ID" ] && [ -n "$YOUTUBE_CLIENT_SECRET" ]; then
+            python3 -c "
+          import json
+          d = {'installed': {
+            'client_id': '$YOUTUBE_CLIENT_ID',
+            'client_secret': '$YOUTUBE_CLIENT_SECRET',
+            'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+            'token_uri': 'https://oauth2.googleapis.com/token',
+            'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs'
+          }}
+          with open('client_secret.json', 'w') as f: json.dump(d, f)
+          print('client_secret.json generated from CLIENT_ID/SECRET')
+          "
+          fi
+
+      - name: Refresh YouTube Token (Keep-Alive)
+        env:
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CI: 'true'
+          GITHUB_ACTIONS: 'true'
+        run: |
+          python3 -c "
+          import os, json, base64, urllib.request
+          from google.auth.transport.requests import Request
+          from google.oauth2.credentials import Credentials
+          from nacl import encoding, public as nacl_public
+
+          SCOPES = [
+              'https://www.googleapis.com/auth/youtube.upload',
+              'https://www.googleapis.com/auth/youtube.force-ssl'
+          ]
+
+          def update_secret(name, value):
+              github_token = os.getenv('GITHUB_TOKEN') or os.getenv('GH_TOKEN')
+              if not github_token:
+                  print(f'WARN: No GITHUB_TOKEN, cannot update {name}')
+                  return False
+              repo = os.getenv('GITHUB_REPOSITORY', 'trixterx101-web/Evtrix')
+              api = f'https://api.github.com/repos/{repo}/actions/secrets'
+              headers = {
+                  'Authorization': f'Bearer {github_token}',
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                  'Content-Type': 'application/json',
+              }
+              req = urllib.request.Request(f'{api}/public-key', headers=headers)
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  pub = json.loads(r.read())
+              pk = nacl_public.PublicKey(pub['key'].encode(), encoding.Base64Encoder())
+              encrypted = base64.b64encode(nacl_public.SealedBox(pk).encrypt(value.encode())).decode()
+              body = json.dumps({'encrypted_value': encrypted, 'key_id': pub['key_id']}).encode()
+              req2 = urllib.request.Request(f'{api}/{name}', data=body, headers=headers, method='PUT')
+              with urllib.request.urlopen(req2, timeout=15) as r:
+                  r.read()
+              print(f'OK: GitHub Secret updated: {name}')
+              return True
+
+          # Strategy 1: YOUTUBE_TOKEN_JSON
+          creds = None
+          token_json_str = os.getenv('YOUTUBE_TOKEN_JSON', '')
+          client_id = os.getenv('YOUTUBE_CLIENT_ID', '')
+          client_secret = os.getenv('YOUTUBE_CLIENT_SECRET', '')
+
+          if token_json_str:
+              print('Strategy 1: YOUTUBE_TOKEN_JSON...')
+              try:
+                  data = json.loads(token_json_str)
+                  if client_id: data['client_id'] = client_id
+                  if client_secret: data['client_secret'] = client_secret
+                  creds = Credentials.from_authorized_user_info(data, SCOPES)
+                  if not creds.valid:
+                      creds.refresh(Request())
+                  print('Strategy 1: SUCCESS')
+              except Exception as e:
+                  print(f'Strategy 1 failed: {e}')
+                  creds = None
+
+          # Strategy 2: YOUTUBE_REFRESH_TOKEN
+          if not creds:
+              rt = os.getenv('YOUTUBE_REFRESH_TOKEN', '')
+              if rt and client_id and client_secret:
+                  print('Strategy 2: YOUTUBE_REFRESH_TOKEN...')
+                  try:
+                      creds = Credentials(
+                          token=None, refresh_token=rt,
+                          token_uri='https://oauth2.googleapis.com/token',
+                          client_id=client_id, client_secret=client_secret,
+                          scopes=SCOPES
+                      )
+                      creds.refresh(Request())
+                      print('Strategy 2: SUCCESS')
+                  except Exception as e:
+                      print(f'Strategy 2 failed: {e}')
+                      creds = None
+
+          # Strategy 3: local token.json
+          if not creds and os.path.exists('token.json'):
+              print('Strategy 3: token.json...')
+              try:
+                  creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+                  if not creds.valid:
+                      creds.refresh(Request())
+                  print('Strategy 3: SUCCESS')
+              except Exception as e:
+                  print(f'Strategy 3 failed: {e}')
+                  creds = None
+
+          if not creds or not creds.valid:
+              print('FATAL: All strategies failed! Token cannot be refreshed.')
+              print('Manual intervention needed: run get_permanent_token.py locally')
+              exit(1)
+
+          # Verify token works
+          from googleapiclient.discovery import build
+          yt = build('youtube', 'v3', credentials=creds)
+          ch = yt.channels().list(part='snippet', mine=True).execute()
+          for item in ch.get('items', []):
+              print(f'Verified channel: {item[\"snippet\"][\"title\"]} (ID: {item[\"id\"]})')
+
+          # Save back to GitHub secrets (self-healing)
+          new_token_json = creds.to_json()
+          update_secret('YOUTUBE_TOKEN_JSON', new_token_json)
+          if creds.refresh_token:
+              update_secret('YOUTUBE_REFRESH_TOKEN', creds.refresh_token)
+
+          print('')
+          print('TOKEN KEEP-ALIVE COMPLETE!')
+          print('Token refreshed and saved to GitHub Secrets.')
+          print('Next video pipeline will use this fresh token.')
+          "
