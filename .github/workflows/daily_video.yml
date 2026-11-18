@@ -71,23 +71,14 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      # -- 3. APT Cache --
-      - name: Cache APT packages
-        uses: actions/cache@v4.2.0
-        with:
-          path: /var/cache/apt/archives
-          key: apt-ffmpeg-fonts-${{ runner.os }}-noble-v2
-
-      # -- 4. System Dependencies --
+      # -- 3. System Dependencies (Fast & Lean) --
       - name: Install System Dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
             fonts-liberation \
             fonts-dejavu-core \
-            imagemagick \
-            libsm6 libxext6 libxrender-dev
+            imagemagick
 
       # -- 5. Python Dependencies --
       - name: Install Python Dependencies
