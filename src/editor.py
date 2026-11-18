@@ -111,21 +111,34 @@ class AutoEditor:
                     concat_inputs + f"concat=n={len(clips_paths)}:v=1:a=0[vout]"
                 )
 
-            # Write filter complex script to file to avoid Windows command-line character limits
-            temp_filter_file = os.path.join(tempfile.gettempdir(), f"filter_complex_{os.getpid()}.txt")
-            with open(temp_filter_file, "w", encoding="utf-8") as ff:
-                ff.write(fg)
-
             temp_video = os.path.join(tempfile.gettempdir(), f"temp_merged_{os.getpid()}.mp4")
 
+            # Universal FFmpeg filter_complex (works across all FFmpeg versions 4.x - 7.x+)
             cmd_v = ["ffmpeg", "-y"] + inputs + [
-                "-filter_complex_script", temp_filter_file,
+                "-filter_complex", fg,
                 "-map", "[vout]",
                 "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
                 "-pix_fmt", "yuv420p", "-threads", "2", "-an",
                 temp_video
             ]
             r = subprocess.run(cmd_v, capture_output=True, text=True, timeout=1200)
+            if r.returncode != 0:
+                # Fallback to file-based filter_complex (-/filter_complex for FFmpeg 7+, -filter_complex_script for older)
+                temp_filter_file = os.path.join(tempfile.gettempdir(), f"filter_complex_{os.getpid()}.txt")
+                with open(temp_filter_file, "w", encoding="utf-8") as ff:
+                    ff.write(fg)
+                for flag in ["-/filter_complex", "-filter_complex_script"]:
+                    cmd_fb = ["ffmpeg", "-y"] + inputs + [
+                        flag, temp_filter_file,
+                        "-map", "[vout]",
+                        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
+                        "-pix_fmt", "yuv420p", "-threads", "2", "-an",
+                        temp_video
+                    ]
+                    r = subprocess.run(cmd_fb, capture_output=True, text=True, timeout=1200)
+                    if r.returncode == 0:
+                        break
+
             if r.returncode != 0:
                 logger.error(f"[Editor] Pass 1 failed: {r.stderr[-400:]}")
                 return False
